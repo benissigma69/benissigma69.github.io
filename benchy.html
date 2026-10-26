@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080911">
+<title>SWIRL - Human Tester</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2335ffe8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/><path d='M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z'/><path d='M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/></svg>">
+<style>
+:root{
+--bg:#080911;--panel:rgba(18,20,33,.6);--line:rgba(255,255,255,.09);
+--text:#f4f5fb;--muted:#9b9eaf;
+--cyan:#35e5f3;--purple:#a47aff;--pink:#ff5b9d;--gold:#ffd16c;--green:#70efb4;
+--accent:#35ffe8;--accent2:#70efb4;
+--font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html{cursor: none !important;}
+body{
+margin:0;min-height:100vh;color:var(--text);overflow-x:hidden;
+font-family:var(--font-main);
+background:
+radial-gradient(ellipse at 12% 8%,rgba(115,73,208,.16),transparent 38%),
+radial-gradient(ellipse at 88% 82%,rgba(28,195,216,.11),transparent 40%),var(--bg);
+cursor: none !important;
+transition: background 0.3s ease;
+}
+button, a, input, select, textarea, dialog, .game-card, .small-button, .brand, #enter-btn, .tab, .mini-btn, .stat-block, .leaderboard-row, .game-area, .target, .mem-cell, .clickpad, .num-input, .rank-btn {cursor:none !important}
+dialog, dialog * {cursor:auto !important}
+dialog button {cursor:pointer !important}
+dialog[open] ~ #cursor-dot, body.dialog-open #cursor-dot {z-index:2147483647 !important}
+
+button{font:inherit; font-family: var(--font-main);}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* CURSOR */
+#cursor-dot {
+position: fixed; top: 0; left: 0; width: 10px; height: 10px;
+background: var(--accent); border-radius: 50%;
+pointer-events: none; z-index: 99999;
+transform: translate(-50%, -50%);
+box-shadow: 0 0 12px var(--accent);
+transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+will-change: transform, left, top;
+}
+body.cursor-hover #cursor-dot { background: var(--gold); box-shadow: 0 0 18px var(--gold); }
+body:active #cursor-dot { background: var(--pink); box-shadow: 0 0 16px var(--pink); }
+
+
+/* BACKGROUND */
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#shooting{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.aurora{position:fixed;width:500px;height:500px;border-radius:50%;filter:blur(140px);opacity:.12;pointer-events:none;z-index:0;animation:drift 22s ease-in-out infinite alternate}
+.aurora.a{left:-200px;top:-150px;background:var(--purple)}
+.aurora.b{right:-200px;bottom:-150px;background:var(--cyan);animation-delay:-11s}
+@keyframes drift{to{transform:translate(100px,80px) scale(1.2)}}
+
+.clock { position: fixed; bottom: 20px; right: 24px; color: rgba(255,255,255,0.25); font-size: 11px; font-weight: 800; letter-spacing: 1px; font-variant-numeric: tabular-nums; z-index: 50; pointer-events: none; }
+
+/* LANDING */
+#landing { position: fixed; inset: 0; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); transition: opacity 0.8s ease, visibility 0.8s ease; }
+#landing.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+#landing h1 { font-size: clamp(40px, 10vw, 80px); font-weight: 1000; letter-spacing: -4px; background: linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 10px; text-align: center; filter: drop-shadow(0 0 30px rgba(53,255,232,0.3)); }
+#landing p { color: var(--muted); font-size: 12px; letter-spacing: 3px; margin-bottom: 40px; text-align: center; }
+#enter-btn { padding: 16px 48px; border: 2px solid var(--accent); border-radius: 12px; background: transparent; color: var(--accent); font-size: 14px; font-weight: 950; letter-spacing: 4px; transition: all 0.3s ease; }
+#enter-btn:hover { background: rgba(53,255,232,.1); box-shadow: 0 0 40px rgba(53,255,232,.3); transform: scale(1.05); }
+#enter-btn:active { transform: scale(0.98); }
+
+/* APP */
+.app{position:relative;z-index:2;width:min(1240px,100%);margin:auto;padding:24px 20px 60px;}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:950;letter-spacing:3px}
+.brand svg{width:24px;height:24px; filter: drop-shadow(0 0 8px rgba(53,255,232,0.4));}
+.brand span{color:var(--accent)}
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.small-button{padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);color:var(--muted);font-size:9px;letter-spacing:1px;font-weight:900;transition: all 0.2s;display:flex;align-items:center;gap:6px}
+.small-button svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.small-button:hover{color:var(--accent);border-color:var(--accent);transform:translateY(-1px)}
+
+/* RANK BUTTON */
+.rank-btn{background:linear-gradient(135deg, rgba(255,209,108,.1), rgba(255,91,157,.1)); border-color:var(--gold); color:var(--gold); position:relative; overflow:hidden;}
+.rank-btn:hover{color:white; border-color:var(--gold); box-shadow:0 0 15px rgba(255,209,108,.4);}
+.rank-btn svg{fill:var(--gold); stroke:none;}
+
+/* PROFILE TITLE */
+.profile-title { font-size: 11px; color: var(--accent); letter-spacing: 1px; margin-top: 4px; font-weight: 900; text-transform: uppercase; display:flex; align-items:center; gap:4px;}
+.profile-title svg { width: 12px; height: 12px; fill: var(--accent); }
+
+/* LIVE VIEWERS */
+.live-ticker { display: flex; align-items: center; gap: 6px; font-size: 9px; font-weight: 900; color: var(--green); background: rgba(112,239,180,.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(112,239,180,.3); margin-left: 12px; }
+.live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulseLive 1s infinite alternate; }
+@keyframes pulseLive { from { opacity: 0.4; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); box-shadow: 0 0 10px var(--green); } }
+
+/* DAILY GOAL */
+.daily-goal{position:relative;overflow:hidden;margin-bottom:20px;padding:18px 22px;border:1px solid rgba(255,209,108,.3);border-radius:16px;background:linear-gradient(105deg,rgba(255,209,108,.08),rgba(164,122,255,.05));box-shadow:0 14px 40px #0002}
+.daily-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.daily-title{font-size:10px;font-weight:950;letter-spacing:2px;color:var(--gold)}
+.daily-desc{color:var(--muted);font-size:10px;letter-spacing:.5px;margin-top:4px;line-height:1.5}
+.daily-desc b{color:var(--text)}
+.daily-progress-bar{height:8px;margin-top:12px;overflow:hidden;border-radius:9px;background:rgba(255,255,255,.08)}
+.daily-progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--accent));transition:width .6s cubic-bezier(0.2,0.8,0.2,1);box-shadow:0 0 12px rgba(255,209,108,.4)}
+.daily-meta{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:1.5px}
+.daily-meta b{color:var(--gold)}
+.daily-complete{color:var(--green)!important}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;margin-bottom:22px;padding:34px 28px;border:1px solid var(--line);border-radius:20px;background:var(--panel);backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow:0 20px 65px #0005;}
+.hero:after{content:"";position:absolute;right:-130px;top:-235px;width:440px;height:440px;border:1px solid #35ffe822;border-radius:50%;box-shadow:0 0 0 30px #35ffe808,0 0 0 65px #a47aff08;pointer-events:none}
+.hero-title{position:relative;z-index:1;font-size:clamp(28px,5vw,44px);font-weight:1000;letter-spacing:-2px;margin:0 0 8px;color:var(--text)}
+.hero-title span{background:linear-gradient(135deg,var(--accent),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{position:relative;z-index:1;color:var(--muted);font-size:12px;letter-spacing:1px;line-height:1.6;max-width:600px}
+.hero-stats{position:relative;z-index:1;display:flex;gap:24px;margin-top:22px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column;gap:4px}
+.hero-stat small{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:2px}
+.hero-stat b{color:var(--accent);font-size:22px;font-weight:1000;letter-spacing:-1px}
+.hero-stat b.gold{color:var(--gold)}
+
+/* SECTION */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 4px}
+.section-title{font-size:11px;font-weight:950;letter-spacing:3px;color:var(--muted)}
+.section-title span{color:var(--accent)}
+
+/* GAME GRID */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px;margin-bottom:26px; perspective: 1000px;}
+.game-card{position:relative;padding:24px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 14px 40px #0002;transition:transform 0.1s ease, border-color 0.3s, box-shadow 0.3s;overflow:hidden;text-align:left; transform-style: preserve-3d;}
+.game-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 0%,transparent 60%,rgba(53,255,232,0.04) 100%);opacity:0;transition:opacity .3s;pointer-events:none}
+.game-card:hover::before{opacity:1}
+.game-icon{width:52px;height:52px;border-radius:13px;display:grid;place-items:center;margin-bottom:16px;border:1px solid #35ffe833;background:linear-gradient(135deg,#35ffe822,#a47aff22);color:var(--accent);transition:transform .3s;}
+.game-card:hover .game-icon{transform:scale(1.08) rotate(-3deg)}
+.game-icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.game-name{font-size:16px;font-weight:950;letter-spacing:1px;margin:0 0 6px;color:var(--text)}
+.game-desc{color:var(--muted);font-size:10px;line-height:1.55;margin:0 0 16px;min-height:46px}
+.game-meta{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px}
+.game-meta-col{display:flex;flex-direction:column;gap:2px}
+.game-meta-col small{color:var(--muted);font-size:7px;font-weight:900;letter-spacing:1.5px}
+.game-meta-col b{color:var(--accent);font-size:13px;font-weight:1000;letter-spacing:-0.3px}
+.game-meta-col b.gold{color:var(--gold)}
+.game-meta-col b.muted{color:var(--muted);font-weight:900}
+.game-best{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--line);gap:10px}
+.game-play{padding:7px 14px;border:1px solid var(--accent);border-radius:8px;background:rgba(53,255,232,0.08);color:var(--accent);font-size:8px;font-weight:950;letter-spacing:1.5px;transition:.2s;white-space:nowrap}
+.game-card:hover .game-play{background:var(--accent);color:#080911;box-shadow:0 0 20px rgba(53,255,232,.4)}
+
+/* SPECIFIC HOVER COLORS */
+.game-card[data-game="reaction"]:hover { border-color: var(--pink); box-shadow: 0 20px 50px rgba(255,91,157,0.2); }
+.game-card[data-game="cps"]:hover { border-color: var(--gold); box-shadow: 0 20px 50px rgba(255,209,108,0.2); }
+.game-card[data-game="sequence"]:hover { border-color: var(--purple); box-shadow: 0 20px 50px rgba(164,122,255,0.2); }
+.game-card[data-game="number"]:hover { border-color: var(--green); box-shadow: 0 20px 50px rgba(112,239,180,0.2); }
+.game-card[data-game="typing"]:hover { border-color: var(--cyan); box-shadow: 0 20px 50px rgba(53,255,232,0.2); }
+
+/* ACHIEVEMENTS MINI */
+.ach-mini{display:flex;gap:5px;flex-wrap:wrap}
+.ach-badge{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--line);display:grid;place-items:center;transition:.2s;position:relative}
+.ach-badge svg{width:11px;height:11px;fill:none;stroke:var(--muted);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.ach-badge.unlocked{background:linear-gradient(135deg,rgba(255,209,108,.25),rgba(255,91,157,.15));border-color:var(--gold);box-shadow:0 0 12px rgba(255,209,108,.35)}
+.ach-badge.unlocked svg{stroke:var(--gold);opacity:1;fill:var(--gold)}
+.ach-badge.tier-bronze{background:linear-gradient(135deg,rgba(205,127,50,.25),rgba(180,100,40,.15));border-color:#cd7f32}
+.ach-badge.tier-bronze svg{stroke:#cd7f32;fill:#cd7f32;opacity:1}
+.ach-badge.tier-silver{background:linear-gradient(135deg,rgba(192,192,192,.25),rgba(160,160,160,.15));border-color:#c0c0c0}
+.ach-badge.tier-silver svg{stroke:#c0c0c0;fill:#c0c0c0;opacity:1}
+.ach-badge.tier-gold{background:linear-gradient(135deg,rgba(255,215,0,.3),rgba(255,180,0,.2));border-color:#ffd700;box-shadow:0 0 14px rgba(255,215,0,.4)}
+.ach-badge.tier-gold svg{stroke:#ffd700;fill:#ffd700;opacity:1}
+.ach-badge.tier-platinum{background:linear-gradient(135deg,rgba(229,228,226,.35),rgba(140,160,180,.25));border-color:#e5e4e2;box-shadow:0 0 16px rgba(229,228,226,.5)}
+.ach-badge.tier-platinum svg{stroke:#e5e4e2;fill:#e5e4e2;opacity:1}
+
+/* GAME SCREEN */
+#game-screen{position:fixed;inset:0;z-index:500;background:var(--bg);display:none;flex-direction:column;}
+#game-screen.active{display:flex}
+#game-screen .game-bg{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(53,255,232,.06),transparent 60%);pointer-events:none; transition: background 0.2s ease;}
+.gs-header{position:relative;z-index:2;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.gs-back{padding:9px 16px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);color:var(--muted);font-size:9px;font-weight:900;letter-spacing:1.5px;transition:.2s;display:flex;align-items:center;gap:6px}
+.gs-back:hover{color:var(--accent);border-color:var(--accent)}
+.gs-title{font-size:13px;font-weight:950;letter-spacing:2.5px;color:var(--text)}
+.gs-title span{color:var(--accent)}
+.gs-body{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;overflow:auto;}
+.gs-hint{color:var(--muted);font-size:11px;letter-spacing:2px;font-weight:800;margin-bottom:24px;line-height:1.5;max-width:600px}
+.gs-hint b{color:var(--accent)}
+
+/* REACTION */
+.target-wrap{display:grid;place-items:center;width:100%;max-width:460px;margin:0 auto;}
+.target{width:clamp(260px,42vw,360px);height:clamp(260px,42vw,360px);border-radius:50%;border:3px solid var(--line);background:linear-gradient(135deg,rgba(27,31,50,1),rgba(14,17,27,1));display:grid;place-items:center;position:relative;transition:all .15s;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.target.ready{border-color:var(--green);box-shadow:0 0 60px rgba(112,239,180,.35),inset 0 0 40px rgba(112,239,180,.1)}
+.target.wait{background:linear-gradient(135deg,#4a1a20,#2b0c10);border-color:var(--pink);box-shadow:0 0 60px rgba(255,91,157,.3)}
+.target.click{background:linear-gradient(135deg,#1a3a2b,#0c2318);border-color:var(--green);box-shadow:0 0 70px rgba(112,239,180,.5);transform:scale(0.97)}
+.target.idle{background:linear-gradient(135deg,rgba(27,31,50,1),rgba(14,17,27,1));border-color:var(--accent);box-shadow:0 0 40px rgba(53,255,232,.2)}
+.target-text{font-size:26px;font-weight:1000;letter-spacing:2px;color:var(--text);line-height:1.3;padding:0 24px}
+.target-text small{display:block;font-size:10px;color:var(--muted);font-weight:800;letter-spacing:1.5px;margin-top:8px}
+
+/* CPS */
+.clickpad{width:min(420px,88vw);height:min(420px,88vw);max-height:420px;border-radius:26px;border:3px solid var(--accent);background:linear-gradient(135deg,rgba(27,31,50,1),rgba(14,17,27,1));display:grid;place-items:center;transition:all .06s;box-shadow:0 20px 70px rgba(53,255,232,.18),inset 0 0 40px rgba(53,255,232,.05);user-select:none;-webkit-tap-highlight-color:transparent;position:relative;overflow:hidden}
+.clickpad:active{transform:scale(0.98);box-shadow:0 10px 40px rgba(53,255,232,.4),inset 0 0 60px rgba(53,255,232,.15)}
+.clickpad-text{font-size:30px;font-weight:1000;letter-spacing:4px;color:var(--accent);text-shadow:0 0 30px rgba(53,255,232,.5);margin-top:8px}
+.clickpad-count{font-size:clamp(60px,14vw,100px);font-weight:1000;letter-spacing:-4px;color:var(--accent);line-height:1;text-shadow:0 0 40px rgba(53,255,232,.5);font-variant-numeric:tabular-nums}
+.click-ripple{position:absolute;top:50%;left:50%;width:100px;height:100px;margin-top:-50px;margin-left:-50px;border-radius:50%;border:2px solid rgba(53,255,232,.6);opacity:0;transform:scale(.5);pointer-events:none}
+.click-ripple.animate{animation:rippleExpand .5s ease-out forwards}
+@keyframes rippleExpand{0%{opacity:1;transform:scale(.5)}100%{opacity:0;transform:scale(3.5)}}
+.cps-timer{font-size:14px;font-weight:950;letter-spacing:2px;color:var(--muted);margin-top:24px}
+.cps-timer b{color:var(--accent);font-size:20px;font-variant-numeric:tabular-nums}
+
+/* SEQUENCE */
+.mem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,2vw,16px);width:min(480px,92vw);margin:0 auto;perspective:800px}
+.mem-cell{aspect-ratio:1;border-radius:clamp(14px,2.4vw,22px);border:2px solid var(--line);background:linear-gradient(145deg,rgba(40,44,66,.8),rgba(20,23,35,.9));transition:all .15s cubic-bezier(0.2,0.8,0.2,1);position:relative;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3);display:grid;place-items:center}
+.mem-cell svg{width:42%;height:42%;fill:none;stroke:rgba(155,158,175,.35);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:all .15s ease;pointer-events:none;position:relative;z-index:2}
+.mem-cell::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.08),transparent 60%);opacity:1;transition:opacity .2s}
+.mem-cell::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(53,255,232,.4),transparent 65%);opacity:0;transition:opacity .15s;pointer-events:none;z-index:1}
+.mem-cell.lit{border-color:var(--accent);background:linear-gradient(145deg,rgba(53,255,232,.5),rgba(43,191,176,.4));box-shadow:0 0 50px rgba(53,255,232,.7),inset 0 0 40px rgba(53,255,232,.4),0 0 0 2px rgba(53,255,232,.4);transform:scale(1.05) translateZ(10px)}
+.mem-cell.lit svg{stroke:white;stroke-width:2.2;filter:drop-shadow(0 0 8px rgba(255,255,255,.8))}
+.mem-cell.lit::after{opacity:1}
+.mem-cell.wrong{border-color:var(--pink);background:linear-gradient(145deg,rgba(255,91,157,.5),rgba(193,59,110,.4));box-shadow:0 0 50px rgba(255,91,157,.7),inset 0 0 40px rgba(255,91,157,.4);transform:scale(0.95);animation:wrongShake .4s}
+.mem-cell.wrong svg{stroke:white;stroke-width:2.2}
+@keyframes wrongShake{0%,100%{transform:translateX(0) scale(0.95)}20%{transform:translateX(-8px) scale(0.95)}40%{transform:translateX(8px) scale(0.95)}60%{transform:translateX(-5px) scale(0.95)}80%{transform:translateX(5px) scale(0.95)}}
+.mem-cell:hover:not(.lit):not(.wrong):not(.disabled){border-color:rgba(53,255,232,.5);background:linear-gradient(145deg,rgba(53,255,232,.12),rgba(20,23,35,.9));box-shadow:inset 0 2px 6px rgba(0,0,0,.4),0 4px 16px rgba(53,255,232,.2)}
+.mem-cell:hover:not(.lit):not(.wrong):not(.disabled) svg{stroke:rgba(53,255,232,.7)}
+.mem-cell:active:not(.lit):not(.wrong):not(.disabled){transform:scale(0.94)}
+.mem-cell.disabled{pointer-events:none}
+
+/* REVIEW ORANGE TILES */
+.mem-cell.review {
+background: linear-gradient(145deg, rgba(255, 140, 0, 0.6), rgba(220, 100, 0, 0.5)) !important;
+border-color: #ff8c00 !important;
+box-shadow: 0 0 50px rgba(255, 140, 0, 0.7), inset 0 0 40px rgba(255, 140, 0, 0.4), 0 0 0 2px rgba(255, 140, 0, 0.4) !important;
+transform: scale(1.05) translateZ(10px) !important;
+}
+.mem-cell.review svg {
+stroke: white !important;
+stroke-width: 2.2 !important;
+filter: drop-shadow(0 0 8px rgba(255,255,255,.8)) !important;
+}
+
+.mem-status{margin-top:26px;font-size:12px;letter-spacing:2px;color:var(--muted);font-weight:900}
+.mem-status b{color:var(--accent);font-size:20px;font-variant-numeric:tabular-nums}
+
+/* NUMBER MEMORY */
+.num-display{user-select: none; -webkit-user-select: none; font-size:clamp(56px,12vw,96px);font-weight:1000;letter-spacing:clamp(4px,1vw,10px);color:var(--accent);text-shadow:0 0 50px rgba(53,255,232,.5);font-variant-numeric:tabular-nums;margin:24px 0;min-height:120px;display:flex;align-items:center;justify-content:center;padding:0 16px;word-break:break-all;transition:font-size .3s; animation: dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+@keyframes dropIn { 0% { transform: translateY(-50px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+.num-input{padding:18px 24px;width:min(440px,92vw);border:2px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);color:var(--text);font-size:clamp(20px,4vw,28px);font-weight:900;text-align:center;letter-spacing:clamp(2px,.8vw,6px);font-family:var(--font-main);transition:.2s;outline:none}
+.num-input:focus{border-color:var(--accent);box-shadow:0 0 30px rgba(53,255,232,.2)}
+.ready-btn{padding:16px 40px;border:2px solid var(--accent);border-radius:12px;background:rgba(53,255,232,.1);color:var(--accent);font-size:12px;font-weight:950;letter-spacing:2.5px;transition:.2s;box-shadow:0 0 30px rgba(53,255,232,.15);margin-top:20px}
+.ready-btn:hover{background:var(--accent);color:#080911;box-shadow:0 0 40px rgba(53,255,232,.5);transform:translateY(-2px)}
+
+/* TYPING */
+.type-text{position:relative; max-width:900px;width:100%;font-size:clamp(16px,2.2vw,22px);line-height:1.9;letter-spacing:.4px;color:var(--muted);font-weight:600;margin:28px 0;user-select:none;text-align:left;font-family:'SF Mono',Menlo,Consolas,monospace;padding:24px;background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:16px;word-wrap:break-word;overflow-wrap:break-word;white-space:normal;}
+.type-text span{transition:color .05s,background-color .05s;display:inline}
+.type-text .correct{color:var(--green)}
+.type-text .incorrect{color:var(--pink);background:rgba(255,91,157,.15);border-radius:2px}
+.type-text .current{color:var(--accent);border-bottom:2px solid var(--accent);animation:caretBlink 1s infinite}
+@keyframes caretBlink{0%,50%{border-color:var(--accent)}51%,100%{border-color:transparent}}
+.type-stats{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+.type-stat{display:flex;flex-direction:column;gap:4px;align-items:center}
+.type-stat small{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:2px}
+.type-stat b{color:var(--accent);font-size:24px;font-weight:1000;letter-spacing:-1px}
+.type-stat b.gold{color:var(--gold)}
+
+/* GHOST CURSOR */
+#ghost-cursor {
+position: absolute; width: 2px; height: 1.9em;
+background: rgba(255,255,255,0.3); border-radius: 2px;
+pointer-events: none; z-index: 10; top: 24px; left: 24px;
+transition: left 0.1s linear, top 0.1s linear;
+opacity: 0;
+}
+#ghost-cursor.active { opacity: 1; }
+
+/* PERFECT COMBO POPUP */
+.combo-popup {
+position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+font-size: 20px; font-weight: 1000; color: var(--gold);
+text-shadow: 0 0 20px var(--gold); letter-spacing: 2px;
+opacity: 0; pointer-events: none;
+}
+.combo-popup.pop { animation: popCombo 0.8s ease-out forwards; }
+@keyframes popCombo { 0% { opacity: 0; transform: translate(-50%, 10px) scale(0.8); } 20% { opacity: 1; transform: translate(-50%, -10px) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -30px) scale(1); } }
+
+/* RESULTS */
+.results{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(3,4,11,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.results.active{display:flex;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.results-box{position:relative;overflow:hidden;max-width:480px;width:calc(100% - 30px);padding:36px 32px;border:1px solid var(--accent);border-radius:22px;background:linear-gradient(135deg,#12141f,#0a0c14);box-shadow:0 30px 100px rgba(0,0,0,.9),0 0 80px rgba(53,255,232,.15);text-align:center;animation:popIn .4s cubic-bezier(0.175,0.885,0.32,1.275)}
+.results-box::after {
+content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+transform: skewX(-25deg); animation: sweep 3s infinite;
+}
+@keyframes sweep { 0% { left: -100%; } 50%, 100% { left: 200%; } }
+
+@keyframes popIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+.results-title{font-size:11px;font-weight:950;letter-spacing:3px;color:var(--muted);margin-bottom:8px}
+.results-value{font-size:clamp(48px,12vw,72px);font-weight:1000;letter-spacing:-3px;color:var(--accent);line-height:1;margin:16px 0;text-shadow:0 0 50px rgba(53,255,232,.4);font-variant-numeric:tabular-nums}
+.results-value.gold{color:var(--gold);text-shadow:0 0 50px rgba(255,209,108,.4)}
+.results-sub{color:var(--muted);font-size:12px;letter-spacing:1.5px;margin-bottom:12px;line-height:1.6}
+.results-sub b{color:var(--gold);font-weight:900}
+.results-rank{display:inline-block;padding:8px 20px;border-radius:20px;font-size:10px;font-weight:950;letter-spacing:2px;margin-bottom:20px;background:rgba(53,255,232,.1);border:1px solid rgba(53,255,232,.3);color:var(--accent)}
+.results-rank.gold{background:rgba(255,209,108,.1);border-color:rgba(255,209,108,.4);color:var(--gold)}
+.results-rank.pink{background:rgba(255,91,157,.1);border-color:rgba(255,91,157,.4);color:var(--pink)}
+.results-avg{margin-top:8px;color:var(--muted);font-size:10px;letter-spacing:1.5px}
+.results-avg b{color:var(--text)}
+
+/* REVIEW SECTION */
+.review-section {
+display: none;
+margin-top: 16px;
+padding: 20px;
+background: rgba(255,255,255,.03);
+border: 1px solid var(--line);
+border-radius: 16px;
+box-shadow: inset 0 2px 15px rgba(0,0,0,.3);
+text-align: center;
+}
+.review-section.active { display: block; animation: fadeIn .3s ease; }
+.review-title { font-size: 10px; font-weight: 950; color: var(--gold); letter-spacing: 2px; margin-bottom: 12px; text-transform: uppercase; }
+.review-content { font-size: 18px; font-weight: 1000; color: var(--text); letter-spacing: 2px; word-break: break-all; }
+.review-btn { margin-top: 12px; padding: 10px 20px; border: 1px solid var(--purple); border-radius: 10px; background: rgba(164,122,255,.1); color: var(--purple); font-size: 10px; font-weight: 950; letter-spacing: 2px; transition: .2s; }
+.review-btn:hover { background: var(--purple); color: white; box-shadow: 0 0 20px rgba(164,122,255,.4); }
+
+.results-ach{margin-top:16px;padding:10px 16px;border-radius:10px;background:rgba(255,209,108,.08);border:1px solid rgba(255,209,108,.3);color:var(--gold);font-size:10px;font-weight:900;letter-spacing:1.5px;text-align:left}
+
+.results-actions{display:flex;gap:10px;justify-content:center;margin-top:24px; position:relative; z-index:2;}
+.results-btn{padding:12px 26px;border:1px solid var(--accent);border-radius:10px;background:var(--accent);color:#080911;font-size:10px;font-weight:950;letter-spacing:2px;transition:.2s}
+.results-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(53,255,232,.4)}
+.results-btn.secondary{background:transparent;color:var(--muted);border-color:var(--line)}
+.results-btn.secondary:hover{color:var(--text);border-color:var(--text);box-shadow:none}
+
+/* TOAST */
+.toast{position:fixed;z-index:700;left:50%;bottom:20px;transform:translate(-50%,12px);opacity:0;padding:10px 16px;border:1px solid var(--line);border-radius:9px;color:var(--accent);background:#0c0e16f5;font-size:9px;letter-spacing:1px;transition:.2s;pointer-events:none;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(5px);font-weight:900}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ACH TOAST */
+.ach-toast{position:fixed;top:24px;right:24px;z-index:800;padding:14px 18px;border:1px solid var(--gold);border-radius:12px;background:linear-gradient(135deg,#1a1c2c,#0f111a);box-shadow:0 10px 40px rgba(255,209,108,.2),0 5px 20px rgba(0,0,0,.8);transform:translateX(120%);opacity:0;transition:transform .4s cubic-bezier(0.175,0.885,0.32,1.275),opacity .4s;display:flex;align-items:center;gap:12px;pointer-events:none;min-width:260px}
+.ach-toast.show{transform:translateX(0);opacity:1}
+.ach-toast-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,209,108,.15);color:var(--gold);display:grid;place-items:center;flex-shrink:0}
+.ach-toast-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ach-toast-text{display:flex;flex-direction:column}
+.ach-toast-label{font-size:9px;color:var(--gold);font-weight:900;letter-spacing:1px;margin-bottom:2px}
+.ach-toast-name{font-size:12px;font-weight:950;color:white}
+
+/* DIALOG */
+dialog{width:min(440px,calc(100% - 30px));padding:0;border:1px solid var(--accent);border-radius:18px;color:var(--text);background:linear-gradient(135deg,#12141f,#0a0c14);box-shadow:0 30px 100px rgba(0,0,0,.9),0 0 60px rgba(53,255,232,.15);z-index:900}
+dialog::backdrop{background:rgba(3,4,11,.85);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.dialog-inner{padding:26px}
+.dialog-title{font-size:13px;font-weight:950;letter-spacing:2.5px;color:var(--accent);margin-bottom:10px}
+.dialog-copy{color:var(--muted);font-size:11px;line-height:1.6;letter-spacing:.5px;margin-bottom:20px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px}
+.dialog-actions button{padding:11px 20px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.05);color:var(--text);font-size:9px;font-weight:950;letter-spacing:1.5px;transition:.2s}
+.dialog-actions button:hover{background:rgba(255,255,255,.1)}
+.dialog-actions .danger{border-color:var(--pink);color:var(--pink);background:rgba(255,91,157,.08)}
+.dialog-actions .danger:hover{background:var(--pink);color:white}
+
+#ach-list{max-height:60vh;overflow-y:auto;padding-right:8px;scrollbar-width:thin;scrollbar-color:var(--accent) rgba(255,255,255,.06)}
+#ach-list::-webkit-scrollbar{width:8px}
+#ach-list::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:8px}
+#ach-list::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent),var(--purple));border-radius:8px}
+
+footer{margin-top:32px;text-align:center;color:#ffffff40;font-size:7px;letter-spacing:2px}
+
+@media(max-width:640px){
+header{gap:8px}
+.brand{font-size:10px}
+.gs-title{font-size:10px}
+.type-text{font-size:15px;padding:16px}
+.hero-stats{gap:16px}
+}
+@media(prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div id="cursor-dot"></div>
+
+<div id="landing">
+<h1>SWIRL</h1>
+<p>HUMAN TESTER</p>
+<button id="enter-btn" type="button">TAP TO ENTER</button>
+</div>
+
+<canvas id="stars" aria-hidden="true"></canvas>
+<canvas id="shooting" aria-hidden="true"></canvas>
+<div class="aurora a"></div><div class="aurora b"></div>
+
+<main class="app" id="app" style="opacity:0; transition: opacity 1s ease;">
+<header>
+<div class="brand">
+<svg viewBox="0 0 24 24" fill="none" stroke="url(#swirlGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<defs>
+<linearGradient id="swirlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="var(--accent)" />
+<stop offset="100%" stop-color="var(--gold)" />
+</linearGradient>
+</defs>
+<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+<path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+<path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+</svg>
+<span>SWIRL</span> / HUMAN TESTER
+</div>
+<div class="header-actions">
+<span class="live-ticker"><span class="live-dot"></span><span id="live-viewers">1,248</span> PLAYING</span>
+<button class="small-button rank-btn" id="open-rank" type="button">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+<span id="rank-btn-text">BRONZE III</span>
+</button>
+<button class="small-button" id="open-achievements" type="button">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+ACHIEVEMENTS
+</button>
+<button class="small-button" id="sound-toggle" type="button">
+<svg viewBox="0 0 24 24" id="sound-icon"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+SOUND ON
+</button>
+<button class="small-button" id="reset-stats" type="button">
+<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+RESET
+</button>
+</div>
+</header>
+
+<section class="daily-goal" id="daily-goal">
+<div class="daily-top">
+<div>
+<div class="daily-title" id="daily-title">✦ DAILY CHALLENGE</div>
+<div class="daily-desc" id="daily-desc">Complete 10 tests today.</div>
+</div>
+</div>
+<div class="daily-progress-bar"><div class="daily-progress-fill" id="daily-progress-fill"></div></div>
+<div class="daily-meta">
+<span id="daily-status">0 / 10 COMPLETE</span>
+<span id="daily-timer">RESETS IN --:--:--</span>
+</div>
+</section>
+
+<section class="hero">
+<h1 class="hero-title">Test your <span>human reflexes</span></h1>
+<div class="profile-title" id="profile-title">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+<span id="dynamic-title">THE ALL-ROUNDER</span>
+</div>
+<p class="hero-sub" style="margin-top:8px">Five challenges. Real leaderboards. Measurable skill. Play solo or stream your attempts — see how you stack up against the world.</p>
+<div class="hero-stats">
+<div class="hero-stat"><small>TESTS TAKEN</small><b id="stat-tests">0</b></div>
+<div class="hero-stat"><small>BEST REACTION</small><b class="gold" id="stat-reaction">—</b></div>
+<div class="hero-stat"><small>BEST CPS</small><b class="gold" id="stat-cps">—</b></div>
+<div class="hero-stat"><small>HIGHEST MEMORY</small><b class="gold" id="stat-memory">—</b></div>
+<div class="hero-stat"><small>SESSION TESTS</small><b id="session-tests">0</b></div>
+</div>
+</section>
+
+<div class="section-head">
+<div class="section-title">ALL TESTS · <span id="ach-count">0 ACHIEVEMENTS</span></div>
+</div>
+
+<div class="game-grid" id="game-grid">
+
+<button class="game-card" data-game="reaction" type="button">
+<div class="game-icon">
+<svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>
+</div>
+<div class="game-name">Reaction Time</div>
+<p class="game-desc">Click the moment the screen turns green. Measures your raw visual reaction speed.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>BEST</small><b id="best-reaction">—</b></div>
+<div class="game-meta-col" style="text-align:right"><small>AVERAGE</small><b class="muted" id="avg-reaction">—</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-reaction"></div>
+<span class="game-play">PLAY</span>
+</div>
+</button>
+
+<button class="game-card" data-game="cps" type="button">
+<div class="game-icon">
+<svg viewBox="0 0 24 24"><path d="M8 12V6a2 2 0 0 1 4 0v5-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-2a6 6 0 0 1-5-3l-3-5a2 2 0 0 1 3-2l2 2"/></svg>
+</div>
+<div class="game-name">Clicks Per Second</div>
+<p class="game-desc">Click as fast as you can for 5 seconds. Streamer favorite. Requires stamina and technique.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>BEST</small><b id="best-cps">—</b></div>
+<div class="game-meta-col" style="text-align:right"><small>AVERAGE</small><b class="muted" id="avg-cps">—</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-cps"></div>
+<span class="game-play">PLAY</span>
+</div>
+</button>
+
+<button class="game-card" data-game="sequence" type="button">
+<div class="game-icon">
+<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+</div>
+<div class="game-name">Sequence Memory</div>
+<p class="game-desc">Watch the pattern and repeat it back. How many steps can you hold in your head?</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>BEST</small><b id="best-sequence">—</b></div>
+<div class="game-meta-col" style="text-align:right"><small>AVERAGE</small><b class="muted" id="avg-sequence">—</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-sequence"></div>
+<span class="game-play">PLAY</span>
+</div>
+</button>
+
+<button class="game-card" data-game="number" type="button">
+<div class="game-icon">
+<svg viewBox="0 0 24 24"><path d="M4 6h4l2 12 2-12h4l2 12 2-12h2"/></svg>
+</div>
+<div class="game-name">Number Memory</div>
+<p class="game-desc">Memorize the number. When you're ready, tap "I'm Ready" and type it back.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>BEST</small><b id="best-number">—</b></div>
+<div class="game-meta-col" style="text-align:right"><small>AVERAGE</small><b class="muted" id="avg-number">—</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-number"></div>
+<span class="game-play">PLAY</span>
+</div>
+</button>
+
+<button class="game-card" data-game="typing" type="button">
+<div class="game-icon">
+<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M8 14h8"/></svg>
+</div>
+<div class="game-name">Typing Speed</div>
+<p class="game-desc">Type a passage as fast and accurately as you can. Measures WPM and accuracy.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>BEST</small><b id="best-typing">—</b></div>
+<div class="game-meta-col" style="text-align:right"><small>AVERAGE</small><b class="muted" id="avg-typing">—</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-typing"></div>
+<span class="game-play">PLAY</span>
+</div>
+</button>
+
+</div>
+
+<div class="daily-goal" style="margin-top: 20px;">
+<div class="daily-top">
+<div>
+<div class="daily-title" style="color:var(--accent)">🏆 RECENT ACHIEVEMENTS</div>
+<div class="daily-desc" id="recent-ach-desc">Play a game to start unlocking achievements.</div>
+</div>
+</div>
+</div>
+
+<footer>YOUR SCORES SAVE IN THIS BROWSER · PRESS ESC OR CLICK "LEAVE" TO EXIT A TEST</footer>
+</main>
+
+<div id="game-screen">
+<div class="game-bg" id="game-bg"></div>
+<div class="gs-header">
+<button class="gs-back" id="gs-back" type="button">
+<svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+LEAVE
+</button>
+<div class="gs-title" id="gs-title">REACTION TIME</div>
+<div style="width:100px"></div>
+</div>
+<div class="gs-body" id="gs-body"></div>
+</div>
+
+<!-- RANK DIALOG -->
+<dialog id="rank-dialog" aria-labelledby="rank-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="rank-title" style="color:var(--gold)">YOUR RANK</div>
+<div class="dialog-copy">Earn achievements to level up your rank. Higher tiers unlock exclusive badges.</div>
+<div id="rank-display" style="text-align:center; margin-bottom:20px;">
+<div style="font-size:40px; margin-bottom:10px; filter: drop-shadow(0 0 20px var(--gold));">🛡️</div>
+<div style="font-size:24px; font-weight:1000; color:var(--gold); letter-spacing:2px;" id="rank-name">BRONZE III</div>
+<div style="font-size:10px; color:var(--muted); margin-top:4px;" id="rank-score">0 / 100 PTS</div>
+<div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:10px; overflow:hidden;">
+<div style="height:100%; width:0%; background:var(--gold); border-radius:3px; transition:width 0.5s;" id="rank-progress"></div>
+</div>
+</div>
+<div class="dialog-actions" style="justify-content:center">
+<button id="close-rank" type="button" style="cursor:pointer">CLOSE</button>
+</div>
+</div>
+</dialog>
+
+<dialog id="ach-dialog" aria-labelledby="ach-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="ach-title">ACHIEVEMENTS</div>
+<div class="dialog-copy">Earn badges by hitting score milestones in each test. Bronze, silver, gold, and platinum tiers.</div>
+<div id="ach-list"></div>
+<div class="dialog-actions" style="margin-top:18px">
+<button id="close-ach" type="button" style="cursor:pointer">CLOSE</button>
+</div>
+</div>
+</dialog>
+
+<dialog id="reset-dialog" aria-labelledby="reset-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="reset-title" style="color:var(--pink)">RESET EVERYTHING?</div>
+<div class="dialog-copy">This will permanently delete all your personal bests, achievements, and daily goal progress. This cannot be undone.</div>
+<div class="dialog-actions">
+<button id="cancel-reset" type="button" style="cursor:pointer">CANCEL</button>
+<button id="confirm-reset" class="danger" type="button" style="cursor:pointer">RESET ALL</button>
+</div>
+</div>
+</dialog>
+
+<div class="results" id="results">
+<div class="results-box" id="results-box">
+<div class="results-title" id="results-title">TEST COMPLETE</div>
+<div class="results-value" id="results-value">—</div>
+<div class="results-rank" id="results-rank">—</div>
+<div class="results-sub" id="results-sub">Personal best: <b>—</b></div>
+<div class="results-avg" id="results-avg"></div>
+
+<div class="review-section" id="review-section">
+<div class="review-title" id="review-title">YOU ARE REVIEWING THE SEQUENCE</div>
+<div class="review-content" id="review-content"></div>
+<button class="review-btn" id="start-review-btn" type="button">PLAY IT BACK</button>
+</div>
+
+<div class="results-ach" id="results-ach" style="display:none"></div>
+<div class="results-actions">
+<button class="results-btn" id="results-share" type="button" style="background:var(--purple); border-color:var(--purple); color:white;">SHARE</button>
+<button class="results-btn" id="results-again" type="button">TRY AGAIN</button>
+<button class="results-btn secondary" id="results-exit" type="button">EXIT</button>
+</div>
+</div>
+</div>
+
+<div class="ach-toast" id="ach-toast">
+<div class="ach-toast-icon">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+</div>
+<div class="ach-toast-text">
+<div class="ach-toast-label">ACHIEVEMENT UNLOCKED</div>
+<div class="ach-toast-name" id="ach-toast-name">—</div>
+</div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="clock" id="clock">00:00:00</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const SAVE_KEY="swirl_arcade_v13";
+
+/* CURSOR & TILT */
+const cursorDot=$("cursor-dot");
+document.addEventListener("mousemove",e=>{
+cursorDot.style.left=e.clientX+"px";
+cursorDot.style.top=e.clientY+"px";
+
+// 3D Card Tilt
+document.querySelectorAll(".game-card").forEach(card => {
+const rect = card.getBoundingClientRect();
+const x = e.clientX - rect.left;
+const y = e.clientY - rect.top;
+if (x > 0 && x < rect.width && y > 0 && y < rect.height) {
+const centerX = rect.width / 2;
+const centerY = rect.height / 2;
+const rotateX = ((y - centerY) / centerY) * -5;
+const rotateY = ((x - centerX) / centerX) * 5;
+card.style.transform = `translateY(-4px) scale(1.02) perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+} else {
+card.style.transform = "";
+}
+});
+},true);
+
+document.addEventListener("mouseover",e=>{
+if(e.target.closest("button, a, .game-card, .small-button, .target, .clickpad, .mem-cell, .type-text, .num-input, .ready-btn, .results-btn, .daily-goal, .review-btn")){
+document.body.classList.add("cursor-hover");
+}
+});
+document.addEventListener("mouseout",e=>{
+if(e.target.closest("button, a, .game-card, .small-button, .target, .clickpad, .mem-cell, .type-text, .num-input, .ready-btn, .results-btn, .daily-goal, .review-btn")){
+document.body.classList.remove("cursor-hover");
+}
+});
+
+function updateDialogCursorState(){
+const anyOpen=!!document.querySelector("dialog[open]");
+document.body.classList.toggle("dialog-open",anyOpen);
+}
+const dialogObserver=new MutationObserver(updateDialogCursorState);
+document.querySelectorAll("dialog").forEach(d=>dialogObserver.observe(d,{attributes:true,attributeFilter:["open"]}));
+updateDialogCursorState();
+
+/* LIVE VIEWER TICKER */
+setInterval(() => {
+let current = parseInt($("live-viewers").textContent.replace(/,/g, ''));
+let change = Math.floor(Math.random() * 21) - 10;
+let newVal = Math.max(800, current + change);
+$("live-viewers").textContent = newVal.toLocaleString();
+}, 3000);
+
+/* LANDING */
+$("enter-btn").addEventListener("click",()=>{
+$("landing").classList.add("hidden");
+setTimeout(()=>{$("app").style.opacity="1";},100);
+sound("enter");
+});
+
+/* CLOCK */
+function updateClock(){
+const d=new Date();
+$("clock").textContent=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+setInterval(updateClock,1000);updateClock();
+
+/* SOUND */
+let audio=null,soundOn=true;
+function sound(type){
+if(!soundOn)return;
+try{
+const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+audio||=new C();if(audio.state==="suspended")audio.resume();
+const now=audio.currentTime;
+const cfg={
+enter:[300,600,.15,.03],
+click:[440,220,.06,.02],
+success:[520,1040,.18,.05],
+fail:[300,140,.28,.06],
+tick:[800,800,.05,.018],
+go:[600,1200,.22,.06],
+beep:[900,900,.1,.03],
+rankup:[400,1200,.4,.08]
+}[type]||[440,440,.1,.02];
+const[sf,ef,dur,vol]=cfg;
+const o=audio.createOscillator(),g=audio.createGain();
+o.type=type==="fail"?"sawtooth":type==="rankup"?"triangle":"sine";
+o.frequency.setValueAtTime(sf,now);
+if(type!=="tick"&&type!=="beep")o.frequency.exponentialRampToValueAtTime(ef,now+dur);
+g.gain.setValueAtTime(.0001,now);
+g.gain.exponentialRampToValueAtTime(vol,now+.01);
+g.gain.exponentialRampToValueAtTime(.0001,now+dur+.05);
+o.connect(g);g.connect(audio.destination);
+o.start(now);o.stop(now+dur+.1);
+}catch{}
+}
+$("sound-toggle").addEventListener("click",()=>{
+soundOn=!soundOn;
+$("sound-toggle").innerHTML = soundOn
+? '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>SOUND ON'
+: '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6M17 9l6 6"/></svg>SOUND OFF';
+if(soundOn)sound("click");
+});
+
+/* STATE */
+let state=loadState();
+let sessionTests = 0;
+
+function defaultState(){
+return{
+tests:0,
+bestReaction:null,bestCps:null,bestSequence:null,bestNumber:null,bestTyping:null,
+scores:{reaction:[],cps:[],sequence:[],number:[],typing:[]},
+achievements:[],
+daily:{day:"",count:0},
+dailyStreak:0,
+lastDailyDay:"",
+lastTypingPassage:null
+}
+}
+function loadState(){
+try{
+const s=JSON.parse(localStorage.getItem(SAVE_KEY));
+if(!s||typeof s!=="object")return defaultState();
+const def=defaultState();
+const merged={...def,...s,scores:{...def.scores,...(s.scores||{})},daily:{...def.daily,...(s.daily||{})}};
+if(merged.daily.day!==todayKey()){ merged.daily={day:todayKey(),count:0}; }
+if(merged.lastDailyDay && merged.lastDailyDay!==todayKey()){
+const yest=new Date();yest.setDate(yest.getDate()-1);
+const yKey=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
+if(merged.lastDailyDay!==yKey) merged.dailyStreak=0;
+}
+return merged;
+}catch{return defaultState()}
+}
+function saveState(){ try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch{} }
+function todayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+
+/* ACHIEVEMENTS */
+const achievements={
+reaction:[
+{id:"reaction_400",name:"Just Woke Up",desc:"Finish under 400ms",tier:"bronze",check:s=>s<=400},
+{id:"reaction_350",name:"Getting There",desc:"Finish under 350ms",tier:"bronze",check:s=>s<=350},
+{id:"reaction_300",name:"Reaction Rookie",desc:"Finish under 300ms",tier:"bronze",check:s=>s<=300},
+{id:"reaction_270",name:"Quickdraw",desc:"Finish under 270ms",tier:"silver",check:s=>s<=270},
+{id:"reaction_250",name:"Sharp Reflex",desc:"Finish under 250ms",tier:"silver",check:s=>s<=250},
+{id:"reaction_230",name:"Fast Hands",desc:"Finish under 230ms",tier:"silver",check:s=>s<=230},
+{id:"reaction_220",name:"Elite Reflexes",desc:"Finish under 220ms",tier:"gold",check:s=>s<=220},
+{id:"reaction_200",name:"Lightning",desc:"Finish under 200ms",tier:"gold",check:s=>s<=200},
+{id:"reaction_190",name:"Superhuman",desc:"Finish under 190ms",tier:"gold",check:s=>s<=190},
+{id:"reaction_180",name:"Faster Than Light",desc:"Finish under 180ms",tier:"gold",check:s=>s<=180},
+{id:"reaction_170",name:"Unreal",desc:"Finish under 170ms",tier:"platinum",check:s=>s<=170},
+{id:"reaction_150",name:"The Flash",desc:"Finish under 150ms",tier:"platinum",check:s=>s<=150},
+{id:"reaction_120",name:"Beyond Human",desc:"Finish under 120ms",tier:"platinum",check:s=>s<=120}
+],
+cps:[
+{id:"cps_4",name:"Warming Up",desc:"Reach 4 CPS",tier:"bronze",check:s=>s>=4},
+{id:"cps_5",name:"Getting Started",desc:"Reach 5 CPS",tier:"bronze",check:s=>s>=5},
+{id:"cps_6",name:"Clicker",desc:"Reach 6 CPS",tier:"bronze",check:s=>s>=6},
+{id:"cps_7",name:"Fast Fingers",desc:"Reach 7 CPS",tier:"silver",check:s=>s>=7},
+{id:"cps_8",name:"Rapid Fire",desc:"Reach 8 CPS",tier:"silver",check:s=>s>=8},
+{id:"cps_9",name:"Skilled Clicker",desc:"Reach 9 CPS",tier:"silver",check:s=>s>=9},
+{id:"cps_10",name:"Speed Demon",desc:"Reach 10 CPS",tier:"gold",check:s=>s>=10},
+{id:"cps_12",name:"Elite Clicker",desc:"Reach 12 CPS",tier:"gold",check:s=>s>=12},
+{id:"cps_14",name:"Butterfly",desc:"Reach 14 CPS",tier:"gold",check:s=>s>=14},
+{id:"cps_15",name:"Jitter Click",desc:"Reach 15 CPS",tier:"gold",check:s=>s>=15},
+{id:"cps_17",name:"Hyperclick",desc:"Reach 17 CPS",tier:"platinum",check:s=>s>=17},
+{id:"cps_18",name:"Inhuman Speed",desc:"Reach 18 CPS",tier:"platinum",check:s=>s>=18},
+{id:"cps_20",name:"Beyond Human",desc:"Reach 20 CPS",tier:"platinum",check:s=>s>=20},
+{id:"cps_25",name:"Impossible",desc:"Reach 25 CPS",tier:"platinum",check:s=>s>=25}
+],
+sequence:[
+{id:"seq_3",name:"Getting Warmer",desc:"Reach 3 steps",tier:"bronze",check:s=>s>=3},
+{id:"seq_4",name:"Four in a Row",desc:"Reach 4 steps",tier:"bronze",check:s=>s>=4},
+{id:"seq_5",name:"Pattern Starter",desc:"Reach 5 steps",tier:"bronze",check:s=>s>=5},
+{id:"seq_6",name:"Sensible",desc:"Reach 6 steps",tier:"silver",check:s=>s>=6},
+{id:"seq_7",name:"Memory Boost",desc:"Reach 7 steps",tier:"silver",check:s=>s>=7},
+{id:"seq_8",name:"Remembering",desc:"Reach 8 steps",tier:"silver",check:s=>s>=8},
+{id:"seq_9",name:"Sharp Mind",desc:"Reach 9 steps",tier:"gold",check:s=>s>=9},
+{id:"seq_10",name:"Ten Tracker",desc:"Reach 10 steps",tier:"gold",check:s=>s>=10},
+{id:"seq_12",name:"Steel Trap",desc:"Reach 12 steps",tier:"gold",check:s=>s>=12},
+{id:"seq_14",name:"Total Recall",desc:"Reach 14 steps",tier:"gold",check:s=>s>=14},
+{id:"seq_16",name:"Photographic",desc:"Reach 16 steps",tier:"platinum",check:s=>s>=16},
+{id:"seq_18",name:"Eidetic",desc:"Reach 18 steps",tier:"platinum",check:s=>s>=18},
+{id:"seq_20",name:"Memory Master",desc:"Reach 20 steps",tier:"platinum",check:s=>s>=20},
+{id:"seq_25",name:"Beyond Human",desc:"Reach 25 steps",tier:"platinum",check:s=>s>=25}
+],
+number:[
+{id:"num_4",name:"Digit Starter",desc:"Remember 4 digits",tier:"bronze",check:s=>s>=4},
+{id:"num_5",name:"Digit Beginner",desc:"Remember 5 digits",tier:"bronze",check:s=>s>=5},
+{id:"num_6",name:"Digits",desc:"Remember 6 digits",tier:"bronze",check:s=>s>=6},
+{id:"num_7",name:"Septuple",desc:"Remember 7 digits",tier:"silver",check:s=>s>=7},
+{id:"num_8",name:"Numerical",desc:"Remember 8 digits",tier:"silver",check:s=>s>=8},
+{id:"num_9",name:"Nine at a Time",desc:"Remember 9 digits",tier:"silver",check:s=>s>=9},
+{id:"num_10",name:"Calculator",desc:"Remember 10 digits",tier:"gold",check:s=>s>=10},
+{id:"num_11",name:"Expanding Mind",desc:"Remember 11 digits",tier:"gold",check:s=>s>=11},
+{id:"num_12",name:"Savant",desc:"Remember 12 digits",tier:"gold",check:s=>s>=12},
+{id:"num_13",name:"Lucky Thirteen",desc:"Remember 13 digits",tier:"gold",check:s=>s>=13},
+{id:"num_14",name:"Eidetic",desc:"Remember 14 digits",tier:"platinum",check:s=>s>=14},
+{id:"num_15",name:"Rain Man",desc:"Remember 15 digits",tier:"platinum",check:s=>s>=15},
+{id:"num_18",name:"Number Genius",desc:"Remember 18 digits",tier:"platinum",check:s=>s>=18},
+{id:"num_20",name:"Beyond Human",desc:"Remember 20 digits",tier:"platinum",check:s=>s>=20}
+],
+typing:[
+{id:"type_25",name:"Beginner Typist",desc:"Reach 25 WPM",tier:"bronze",check:s=>s>=25},
+{id:"type_30",name:"Getting Faster",desc:"Reach 30 WPM",tier:"bronze",check:s=>s>=30},
+{id:"type_40",name:"Typist",desc:"Reach 40 WPM",tier:"bronze",check:s=>s>=40},
+{id:"type_50",name:"Comfortable",desc:"Reach 50 WPM",tier:"silver",check:s=>s>=50},
+{id:"type_60",name:"Fast Typer",desc:"Reach 60 WPM",tier:"silver",check:s=>s>=60},
+{id:"type_70",name:"Quick Keys",desc:"Reach 70 WPM",tier:"silver",check:s=>s>=70},
+{id:"type_80",name:"Keyboard Warrior",desc:"Reach 80 WPM",tier:"gold",check:s=>s>=80},
+{id:"type_90",name:"Touch Typist",desc:"Reach 90 WPM",tier:"gold",check:s=>s>=90},
+{id:"type_100",name:"Speed Typist",desc:"Reach 100 WPM",tier:"gold",check:s=>s>=100},
+{id:"type_110",name:"Elite Typist",desc:"Reach 110 WPM",tier:"gold",check:s=>s>=110},
+{id:"type_120",name:"Keyboard God",desc:"Reach 120 WPM",tier:"platinum",check:s=>s>=120},
+{id:"type_140",name:"Beyond Human",desc:"Reach 140 WPM",tier:"platinum",check:s=>s>=140},
+{id:"type_160",name:"Inhuman",desc:"Reach 160 WPM",tier:"platinum",check:s=>s>=160}
+]
+};
+
+const metaAchievements=[
+{id:"meta_first",name:"First Steps",desc:"Complete your first test",check:s=>s.tests>=1},
+{id:"meta_10",name:"Warming Up",desc:"Complete 10 tests",check:s=>s.tests>=10},
+{id:"meta_25",name:"Dedicated",desc:"Complete 25 tests",check:s=>s.tests>=25},
+{id:"meta_50",name:"Committed",desc:"Complete 50 tests",check:s=>s.tests>=50},
+{id:"meta_100",name:"Century",desc:"Complete 100 tests",check:s=>s.tests>=100},
+{id:"meta_200",name:"Two Hundred",desc:"Complete 200 tests",check:s=>s.tests>=200},
+{id:"meta_500",name:"Five Hundred",desc:"Complete 500 tests",check:s=>s.tests>=500},
+{id:"meta_all5",name:"All-Rounder",desc:"Try all 5 tests at least once",check:s=>Object.values(s.scores).every(a=>a.length>0)},
+{id:"meta_bronze",name:"Bronze Collector",desc:"Unlock 10 bronze achievements",check:s=>countTier(s,"bronze")>=10},
+{id:"meta_bronze_all",name:"Bronze Master",desc:"Unlock all bronze achievements",check:s=>countTier(s,"bronze")>=countTotalTier("bronze")},
+{id:"meta_silver",name:"Silver Collector",desc:"Unlock 10 silver achievements",check:s=>countTier(s,"silver")>=10},
+{id:"meta_silver_all",name:"Silver Master",desc:"Unlock all silver achievements",check:s=>countTier(s,"silver")>=countTotalTier("silver")},
+{id:"meta_gold",name:"Gold Collector",desc:"Unlock 10 gold achievements",check:s=>countTier(s,"gold")>=10},
+{id:"meta_gold_all",name:"Gold Master",desc:"Unlock all gold achievements",check:s=>countTier(s,"gold")>=countTotalTier("gold")},
+{id:"meta_platinum",name:"Platinum Collector",desc:"Unlock 5 platinum achievements",check:s=>countTier(s,"platinum")>=5},
+{id:"meta_platinum_all",name:"Platinum Master",desc:"Unlock all platinum achievements",check:s=>countTier(s,"platinum")>=countTotalTier("platinum")},
+{id:"meta_daily1",name:"Daily Habit",desc:"Complete a daily challenge",check:s=>s.dailyStreak>=1},
+{id:"meta_daily3",name:"On a Roll",desc:"Reach a 3-day daily streak",check:s=>s.dailyStreak>=3},
+{id:"meta_daily7",name:"Weekly Warrior",desc:"Reach a 7-day daily streak",check:s=>s.dailyStreak>=7},
+{id:"meta_daily14",name:"Fortnight Focus",desc:"Reach a 14-day daily streak",check:s=>s.dailyStreak>=14},
+{id:"meta_daily30",name:"Monthly Master",desc:"Reach a 30-day daily streak",check:s=>s.dailyStreak>=30}
+];
+
+function countTier(s,tier){
+let c=0;
+for(const game in achievements){
+for(const a of achievements[game]){
+if(a.tier===tier&&s.achievements.includes(a.id))c++;
+}
+}
+return c;
+}
+function countTotalTier(tier){
+let c=0;
+for(const game in achievements){
+for(const a of achievements[game]){
+if(a.tier===tier)c++;
+}
+}
+return c;
+}
+
+function hasAch(id){return state.achievements.includes(id)}
+function unlockAch(id){
+if(hasAch(id))return false;
+state.achievements.push(id);
+saveState();
+const all=Object.values(achievements).flat().concat(metaAchievements);
+const a=all.find(x=>x.id===id);
+if(a)showAchToast(a.name);
+updateRecentAch(a.name);
+updateRank();
+return true;
+}
+
+function updateRank() {
+let pts = 0;
+for(let i=0; i<state.achievements.length; i++) {
+let id = state.achievements[i];
+if(id.includes("bronze")) pts += 20;
+else if(id.includes("silver")) pts += 50;
+else if(id.includes("gold")) pts += 150;
+else if(id.includes("platinum")) pts += 400;
+else pts += 50; // Meta achievements
+}
+
+let rankName = "BRONZE III";
+let nextReq = 100;
+
+if(pts >= 5000) { rankName = "CELESTIAL"; nextReq = 5000; }
+else if(pts >= 3500) { rankName = "TITAN"; nextReq = 5000; }
+else if(pts >= 2500) { rankName = "CHAMPION"; nextReq = 3500; }
+else if(pts >= 1500) { rankName = "GRANDMASTER"; nextReq = 2500; }
+else if(pts >= 1000) { rankName = "MASTER"; nextReq = 1500; }
+else if(pts >= 600) { rankName = "DIAMOND"; nextReq = 1000; }
+else if(pts >= 350) { rankName = "PLATINUM"; nextReq = 600; }
+else if(pts >= 150) { rankName = "GOLD"; nextReq = 350; }
+else if(pts >= 50) { rankName = "SILVER"; nextReq = 150; }
+
+$("rank-btn-text").textContent = rankName;
+$("rank-name").textContent = rankName;
+$("rank-score").textContent = `${pts} / ${nextReq} PTS`;
+
+let pct = Math.min(100, (pts / nextReq) * 100);
+$("rank-progress").style.width = pct + "%";
+}
+
+
+let achToastTimer;
+function showAchToast(name){
+$("ach-toast-name").textContent=name;
+$("ach-toast").classList.add("show");
+clearTimeout(achToastTimer);
+achToastTimer=setTimeout(()=>$("ach-toast").classList.remove("show"),3500);
+sound("success");
+}
+function checkAch(game,score){
+let newOnes=[];
+for(const a of achievements[game]||[]){
+if(!hasAch(a.id)&&a.check(score))newOnes.push(a.id);
+}
+newOnes.forEach(id=>unlockAch(id));
+for(const m of metaAchievements){
+if(!hasAch(m.id)&&m.check(state)){newOnes.push(m.id);unlockAch(m.id);}
+}
+return newOnes;
+}
+
+function updateRecentAch(name) {
+$("recent-ach-desc").innerHTML = `You just unlocked <b style="color:var(--gold)">${name}</b>!`;
+}
+
+function renderAchBadges(){
+for(const game of ["reaction","cps","sequence","number","typing"]){
+const container=$("ach-"+game);
+if(!container)continue;
+container.innerHTML="";
+for(const a of achievements[game]){
+const badge=document.createElement("div");
+const unlocked=hasAch(a.id);
+badge.className="ach-badge"+(unlocked?" unlocked tier-"+a.tier:"");
+badge.title=a.name+" — "+a.desc+(unlocked?" (Unlocked)":"");
+badge.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+container.appendChild(badge);
+}
+}
+$("ach-count").textContent=state.achievements.length+" ACHIEVEMENTS";
+updateRank();
+}
+
+function renderAchList(){
+const list=$("ach-list");list.innerHTML="";
+const metaSection=document.createElement("div");
+metaSection.style.marginBottom="20px";
+const metaTitle=document.createElement("div");
+metaTitle.style.cssText="font-size:9px;font-weight:950;letter-spacing:2px;color:var(--gold);margin-bottom:8px";
+metaTitle.textContent="META ACHIEVEMENTS";
+metaSection.appendChild(metaTitle);
+for(const a of metaAchievements){
+const unlocked=hasAch(a.id);
+const row=document.createElement("div");
+row.style.cssText=`display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;margin-bottom:5px;background:${unlocked?'rgba(255,209,108,.08)':'rgba(255,255,255,.02)'};border:1px solid ${unlocked?'rgba(255,209,108,.3)':'rgba(255,255,255,.05)'}`;
+row.innerHTML=`
+<div class="ach-badge${unlocked?' unlocked tier-gold':''}"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+<div style="flex:1"><div style="font-size:10px;font-weight:900;color:${unlocked?'var(--gold)':'var(--text)'};margin-bottom:2px">${a.name}</div><div style="font-size:8px;color:var(--muted)">${a.desc}</div></div>`;
+metaSection.appendChild(row);
+}
+list.appendChild(metaSection);
+for(const game of ["reaction","cps","sequence","number","typing"]){
+const section=document.createElement("div");
+section.style.marginBottom="20px";
+const title=document.createElement("div");
+title.style.cssText="font-size:9px;font-weight:950;letter-spacing:2px;color:var(--muted);margin-bottom:8px";
+title.textContent=game.toUpperCase().replace("_"," ");
+section.appendChild(title);
+for(const a of achievements[game]){
+const unlocked=hasAch(a.id);
+const row=document.createElement("div");
+row.style.cssText=`display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;margin-bottom:5px;background:${unlocked?'rgba(255,209,108,.08)':'rgba(255,255,255,.02)'};border:1px solid ${unlocked?'rgba(255,209,108,.3)':'rgba(255,255,255,.05)'}`;
+row.innerHTML=`
+<div class="ach-badge${unlocked?' unlocked tier-'+a.tier:''}"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+<div style="flex:1"><div style="font-size:10px;font-weight:900;color:${unlocked?'var(--gold)':'var(--text)'};margin-bottom:2px">${a.name} <span style="font-size:7px;color:var(--muted);font-weight:800;letter-spacing:1px">· ${a.tier.toUpperCase()}</span></div><div style="font-size:8px;color:var(--muted)">${a.desc}</div></div>`;
+section.appendChild(row);
+}
+list.appendChild(section);
+}
+}
+
+/* HELPERS */
+function avg(arr){
+if(!arr||!arr.length)return null;
+return arr.reduce((a,b)=>a+b,0)/arr.length;
+}
+function addScore(game,score){
+if(!state.scores[game])state.scores[game]=[];
+state.scores[game].push(score);
+if(state.scores[game].length>50)state.scores[game].shift();
+}
+function rankLabel(game,score){
+const ranks={
+reaction:[{min:0,max:160,label:"SUPERHUMAN",cls:"gold"},{min:160,max:200,label:"LIGHTNING",cls:"gold"},{min:200,max:250,label:"ELITE",cls:""},{min:250,max:300,label:"SKILLED",cls:""},{min:300,max:400,label:"AVERAGE",cls:""},{min:400,max:9999,label:"SLOW",cls:"pink"}],
+cps:[{min:20,max:9999,label:"BEYOND HUMAN",cls:"gold"},{min:15,max:20,label:"BUTTERFLY",cls:"gold"},{min:12,max:15,label:"SPEED DEMON",cls:""},{min:10,max:12,label:"RAPID FIRE",cls:""},{min:7,max:10,label:"CLICKER",cls:""},{min:4,max:7,label:"WARMING UP",cls:""},{min:0,max:4,label:"SLOW",cls:"pink"}],
+sequence:[{min:20,max:9999,label:"MEMORY MASTER",cls:"gold"},{min:16,max:20,label:"PHOTOGRAPHIC",cls:"gold"},{min:12,max:16,label:"STEEL TRAP",cls:""},{min:9,max:12,label:"MEMORY BOOST",cls:""},{min:5,max:9,label:"PATTERN STARTER",cls:""},{min:0,max:5,label:"NOVICE",cls:"pink"}],
+number:[{min:15,max:9999,label:"RAIN MAN",cls:"gold"},{min:12,max:15,label:"SAVANT",cls:"gold"},{min:10,max:12,label:"CALCULATOR",cls:""},{min:8,max:10,label:"NUMERICAL",cls:""},{min:6,max:8,label:"DIGITS",cls:""},{min:0,max:6,label:"NOVICE",cls:"pink"}],
+typing:[{min:120,max:9999,label:"KEYBOARD GOD",cls:"gold"},{min:100,max:120,label:"SPEED TYPIST",cls:"gold"},{min:80,max:100,label:"KEYBOARD WARRIOR",cls:""},{min:60,max:80,label:"FAST TYPER",cls:""},{min:40,max:60,label:"TYPIST",cls:""},{min:0,max:40,label:"NOVICE",cls:"pink"}]
+};
+const list=ranks[game]||[];
+for(const r of list){
+if(score>=r.min&&score<r.max)return r;
+}
+return{label:"UNKNOWN",cls:""};
+}
+
+function updateUI(){
+$("stat-tests").textContent=state.tests;
+$("stat-reaction").textContent=state.bestReaction?state.bestReaction+"ms":"—";
+$("stat-cps").textContent=state.bestCps?state.bestCps.toFixed(1):"—";
+$("stat-memory").textContent=state.bestNumber?state.bestNumber+" digits":"—";
+
+$("best-reaction").textContent=state.bestReaction?state.bestReaction+"ms":"—";
+$("best-cps").textContent=state.bestCps?state.bestCps.toFixed(1)+" CPS":"—";
+$("best-sequence").textContent=state.bestSequence?state.bestSequence+" steps":"—";
+$("best-number").textContent=state.bestNumber?state.bestNumber+" digits":"—";
+$("best-typing").textContent=state.bestTyping?state.bestTyping+" WPM":"—";
+
+const avgR=avg(state.scores.reaction);
+const avgC=avg(state.scores.cps);
+const avgS=avg(state.scores.sequence);
+const avgN=avg(state.scores.number);
+const avgT=avg(state.scores.typing);
+$("avg-reaction").textContent=avgR?Math.round(avgR)+"ms":"—";
+$("avg-cps").textContent=avgC?avgC.toFixed(1):"—";
+$("avg-sequence").textContent=avgS?Math.round(avgS)+"":"—";
+$("avg-number").textContent=avgN?Math.round(avgN)+"":"—";
+$("avg-typing").textContent=avgT?Math.round(avgT)+"":"—";
+
+// Dynamic Title
+if(state.bestCps > 12) $("dynamic-title").textContent = "THE MACHINE";
+else if(state.bestReaction < 180) $("dynamic-title").textContent = "LIGHTNING REFLEXES";
+else if(state.bestSequence > 15) $("dynamic-title").textContent = "THE SAVANT";
+else if(state.bestTyping > 100) $("dynamic-title").textContent = "KEYBOARD GOD";
+else $("dynamic-title").textContent = "THE ALL-ROUNDER";
+
+renderAchBadges();
+renderDaily();
+}
+updateUI();
+
+/* DAILY GOAL */
+function renderDaily(){
+if(document.hidden)return;
+const d=state.daily;
+const goal=10;
+const progress=Math.min(1,d.count/goal);
+$("daily-progress-fill").style.width=(progress*100)+"%";
+$("daily-status").textContent=`${Math.min(d.count,goal)} / ${goal} COMPLETE`;
+$("daily-status").className=d.count>=goal?"daily-complete":"";
+if(d.count>=goal){
+$("daily-title").textContent="✓ DAILY CHALLENGE COMPLETE";
+$("daily-title").className="daily-title daily-complete";
+$("daily-desc").innerHTML=`Great job! Streak: <b>${state.dailyStreak} day${state.dailyStreak===1?"":"s"}</b>`;
+}else{
+$("daily-title").textContent="✦ DAILY CHALLENGE";
+$("daily-title").className="daily-title";
+$("daily-desc").innerHTML=`Complete <b>${goal}</b> tests today. Streak: <b>${state.dailyStreak} day${state.dailyStreak===1?"":"s"}</b>`;
+}
+const now=new Date();
+const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+const diff=midnight-now;
+const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+$("daily-timer").textContent=`RESETS IN ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+setInterval(renderDaily,1000);
+
+function recordDailyCompletion(){
+if(state.daily.count>=10)return;
+state.daily.count++;
+if(state.daily.count>=10){
+const yest=new Date();
+yest.setDate(yest.getDate()-1);
+const yKey=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
+state.dailyStreak = state.lastDailyDay===yKey ? state.dailyStreak+1 : 1;
+state.lastDailyDay=todayKey();
+for(const m of metaAchievements){
+if(!hasAch(m.id)&&m.check(state))unlockAch(m.id);
+}
+saveState();
+notify("DAILY CHALLENGE COMPLETE!");
+}
+saveState();
+renderDaily();
+}
+
+/* RESET & DIALOGS */
+$("reset-stats").addEventListener("click",()=>{ $("reset-dialog").showModal(); });
+$("cancel-reset").addEventListener("click",()=>$("reset-dialog").close());
+$("confirm-reset").addEventListener("click",()=>{
+state=defaultState();
+saveState();updateUI();renderAchList();
+$("reset-dialog").close();
+notify("ALL STATS RESET");
+});
+$("reset-dialog").addEventListener("click",e=>{if(e.target===$("reset-dialog"))$("reset-dialog").close()});
+
+$("open-achievements").addEventListener("click",()=>{
+renderAchList();
+$("ach-dialog").showModal();
+});
+$("close-ach").addEventListener("click",()=>$("ach-dialog").close());
+$("ach-dialog").addEventListener("click",e=>{if(e.target===$("ach-dialog"))$("ach-dialog").close()});
+
+$("open-rank").addEventListener("click",()=>{
+updateRank();
+$("rank-dialog").showModal();
+});
+$("close-rank").addEventListener("click",()=>$("rank-dialog").close());
+$("rank-dialog").addEventListener("click",e=>{if(e.target===$("rank-dialog"))$("rank-dialog").close()});
+
+function notify(text){
+const el=$("toast");el.textContent=text;el.classList.add("show");
+clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2400);
+}
+
+/* STARFIELD */
+const starCanvas=$("stars"),starCtx=starCanvas.getContext("2d");
+const shootCanvas=$("shooting"),shootCtx=shootCanvas.getContext("2d");
+let stars=[],shootingStars=[],mouseParallax={x:0,y:0};
+document.addEventListener("mousemove",e=>{
+mouseParallax.x=(e.clientX/innerWidth-0.5)*30;
+mouseParallax.y=(e.clientY/innerHeight-0.5)*30;
+});
+function resizeCanvases(){
+const dpr=Math.min(devicePixelRatio||1,2);
+for(const[c,ctx]of[[starCanvas,starCtx],[shootCanvas,shootCtx]]){
+c.width=innerWidth*dpr;c.height=innerHeight*dpr;
+c.style.width=innerWidth+"px";c.style.height=innerHeight+"px";
+ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+stars=Array.from({length:Math.min(120,Math.floor(innerWidth/8))},()=>({
+x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+r:Math.random()*1.4+.2,a:Math.random()*.55+.12,p:Math.random()*7,
+depth:Math.random()*0.5+0.1
+}));
+}
+function drawStars(t){
+starCtx.clearRect(0,0,innerWidth,innerHeight);
+for(const s of stars){
+const px=mouseParallax.x*s.depth,py=mouseParallax.y*s.depth;
+starCtx.fillStyle=`rgba(200,215,255,${s.a*(.65+Math.sin(t*.001+s.p)*.35)})`;
+starCtx.beginPath();starCtx.arc(s.x+px,s.y+py,s.r,0,Math.PI*2);starCtx.fill();
+}
+}
+function spawnShootingStar(){
+const startX=innerWidth*0.55+Math.random()*innerWidth*0.45;
+const startY=-20+Math.random()*80;
+const angle=Math.PI*0.62+Math.random()*0.25;
+const speed=7+Math.random()*5;
+shootingStars.push({x:startX,y:startY,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,len:80+Math.random()*80,life:1,decay:0.004+Math.random()*0.004,hue:Math.random()<0.5?180:280});
+}
+let shootTimer=0,bgFrameCount=0,lastFrame=performance.now();
+function drawShooting(dt){
+shootCtx.clearRect(0,0,innerWidth,innerHeight);
+for(let i=shootingStars.length-1;i>=0;i--){
+const s=shootingStars[i];
+s.x+=s.vx;s.y+=s.vy;s.life-=s.decay;
+if(s.life<=0||s.x<-100||s.y>innerHeight+100){shootingStars.splice(i,1);continue}
+const tailX=s.x-s.vx*(s.len/10),tailY=s.y-s.vy*(s.len/10);
+const grad=shootCtx.createLinearGradient(s.x,s.y,tailX,tailY);
+grad.addColorStop(0,`hsla(${s.hue},100%,85%,${s.life})`);
+grad.addColorStop(0.4,`hsla(${s.hue},100%,70%,${s.life*0.5})`);
+grad.addColorStop(1,`hsla(${s.hue},100%,60%,0)`);
+shootCtx.strokeStyle=grad;shootCtx.lineWidth=2.2;shootCtx.lineCap="round";
+shootCtx.beginPath();shootCtx.moveTo(s.x,s.y);shootCtx.lineTo(tailX,tailY);shootCtx.stroke();
+shootCtx.fillStyle=`hsla(${s.hue},100%,90%,${s.life})`;
+shootCtx.beginPath();shootCtx.arc(s.x,s.y,2,0,Math.PI*2);shootCtx.fill();
+}
+}
+function bgLoop(now){
+const dt=Math.min((now-lastFrame)/1000,1);lastFrame=now;
+bgFrameCount++;
+if(bgFrameCount%3===0){
+drawStars(now);
+shootTimer+=dt*3;
+if(shootTimer>2.2+Math.random()*2.5){
+shootTimer=0;
+if(Math.random()<0.65)spawnShootingStar();
+}
+drawShooting(dt*3);
+}
+requestAnimationFrame(bgLoop);
+}
+resizeCanvases();addEventListener("resize",resizeCanvases);
+requestAnimationFrame(bgLoop);
+
+/* GAME SYSTEM */
+let currentGame=null;
+const gameScreen=$("game-screen");
+const gsBody=$("gs-body");
+const gsTitle=$("gs-title");
+const gameBg=$("game-bg");
+
+function openGame(id){
+currentGame=id;
+gameScreen.classList.add("active");
+document.body.classList.remove("cursor-crosshair", "cursor-text");
+if(id==="reaction") document.body.classList.add("cursor-crosshair");
+if(id==="typing") document.body.classList.add("cursor-text");
+
+const cfg={
+reaction:{title:"REACTION TIME",run:startReaction},
+cps:{title:"CLICKS PER SECOND",run:startCps},
+sequence:{title:"SEQUENCE MEMORY",run:startSequence},
+number:{title:"NUMBER MEMORY",run:startNumber},
+typing:{title:"TYPING SPEED",run:startTyping}
+}[id];
+gsTitle.innerHTML=`<span>${cfg.title}</span>`;
+document.body.style.overflow="hidden";
+gameBg.style.background="";
+cfg.run();
+sound("click");
+}
+function closeGame(){
+currentGame=null;
+gameScreen.classList.remove("active");
+document.body.style.overflow="";
+document.body.classList.remove("cursor-crosshair", "cursor-text");
+gsBody.innerHTML="";
+$("results").classList.remove("active");
+sound("click");
+}
+$("gs-back").addEventListener("click",closeGame);
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape"&&currentGame&&!$("ach-dialog").open&&!$("reset-dialog").open&&!$("rank-dialog").open)closeGame();
+});
+
+document.querySelectorAll(".game-card").forEach(card=>{
+card.addEventListener("click",()=>openGame(card.dataset.game));
+});
+
+/* RESULTS */
+function showResults(game,title,value,score,onRetry){
+const reviewSection = $("review-section");
+const reviewContent = $("review-content");
+const reviewBtn = $("start-review-btn");
+const reviewTitle = $("review-title");
+
+reviewSection.classList.remove("active");
+reviewContent.innerHTML = "";
+reviewBtn.style.display = "none";
+gameBg.style.background="";
+
+if (game === "sequence" && window.lastFailedSequence) {
+reviewTitle.textContent = "YOU ARE REVIEWING THE SEQUENCE";
+const icons = ["Circle", "Square", "Triangle", "Plus", "X", "Lines", "Ring", "Bars", "Star"];
+reviewContent.innerHTML = window.lastFailedSequence.map(idx => icons[idx]).join(" → ");
+reviewSection.classList.add("active");
+
+reviewBtn.style.display = "inline-block";
+reviewBtn.textContent = "PLAY IT BACK";
+reviewBtn.onclick = () => { playSequenceReview(window.lastFailedSequence); };
+} else if (game === "number" && window.lastFailedNumber) {
+reviewTitle.textContent = "YOU ARE REVIEWING THE NUMBER";
+reviewContent.innerHTML = window.lastFailedNumber;
+reviewSection.classList.add("active");
+}
+
+$("results-title").textContent=title;
+const valEl = $("results-value");
+valEl.textContent = value;
+
+const rank=rankLabel(game,score);
+const rankEl=$("results-rank");
+rankEl.textContent=rank.label;
+rankEl.className="results-rank "+(rank.cls||"");
+
+const newAchs=checkAch(game,score);
+
+const bestKey="best"+game.charAt(0).toUpperCase()+game.slice(1);
+const best=state[bestKey];
+const isNewBest=best!==null&&best===score;
+$("results-sub").innerHTML=isNewBest ? `🏆 <b>NEW PERSONAL BEST</b>` : `Personal best: <b>${formatBest(game,best)}</b>`;
+
+const avgScore=avg(state.scores[game]);
+$("results-avg").innerHTML=avgScore!==null?`Average: <b>${formatBest(game,avgScore)}</b>`:"";
+
+const achEl=$("results-ach");
+if(newAchs.length>0){
+const names=newAchs.map(id=>{
+const all=Object.values(achievements).flat().concat(metaAchievements);
+const a=all.find(x=>x.id===id);
+return a?a.name:id;
+});
+achEl.style.display="block";
+achEl.innerHTML="🎖 <b>UNLOCKED:</b><br>"+names.join(" · ");
+}else{
+achEl.style.display="none";
+}
+
+$("results").classList.add("active");
+renderAchBadges();
+recordDailyCompletion();
+
+if(isNewBest) {
+$("results-box").style.animation = "none";
+void $("results-box").offsetWidth;
+$("results-box").style.animation = "popIn .4s cubic-bezier(0.175,0.885,0.32,1.275)";
+}
+
+// Share Button
+$("results-share").onclick = () => {
+let shareStr = `I just scored ${value} on ${title} in SWIRL Human Tester! Can you beat me?`;
+navigator.clipboard.writeText(shareStr);
+notify("COPIED TO CLIPBOARD!");
+};
+
+$("results-again").onclick=()=>{ $("results").classList.remove("active"); onRetry(); };
+$("results-exit").onclick=()=>{ $("results").classList.remove("active"); closeGame(); };
+}
+
+function playSequenceReview(seq) {
+$("results").classList.remove("active");
+gsBody.innerHTML = `
+<div class="gs-hint" id="seq-hint" style="color:var(--gold); font-weight:900; font-size:14px; margin-bottom:20px;">YOU ARE REVIEWING THE SEQUENCE</div>
+<div class="mem-grid" id="mem-grid">${Array.from({length:9},(_,i)=>`<button class="mem-cell disabled" data-idx="${i}" type="button"><svg viewBox="0 0 24 24">${memIcons[i]}</svg></button>`).join("")}</div>
+<button class="results-btn" id="end-review-btn" type="button" style="margin-top:30px;">END REVIEW</button>
+`;
+const cells = Array.from(document.querySelectorAll(".mem-cell"));
+let i = 0;
+function nextFlash() {
+if (i >= seq.length) return;
+const idx = seq[i];
+cells[idx].classList.add("review");
+soundPitch(idx, true);
+setTimeout(() => {
+cells[idx].classList.remove("review");
+i++;
+setTimeout(nextFlash, 200);
+}, 450);
+}
+setTimeout(nextFlash, 500);
+$("end-review-btn").onclick = () => { closeGame(); };
+}
+
+function formatBest(game,val){
+if(val===null||val===undefined)return"—";
+switch(game){
+case"reaction":return Math.round(val)+"ms";
+case"cps":return val.toFixed(1)+" CPS";
+case"sequence":return Math.round(val)+" steps";
+case"number":return Math.round(val)+" digits";
+case"typing":return Math.round(val)+" WPM";
+default:return String(val);
+}
+}
+
+function recordScore(game,score){
+addScore(game,score);
+sessionTests++;
+$("session-tests").textContent = sessionTests;
+const bestKey="best"+game.charAt(0).toUpperCase()+game.slice(1);
+if (game === "reaction") {
+if (state[bestKey] === null || score < state[bestKey]) state[bestKey] = Math.round(score);
+} else {
+if (state[bestKey] === null || score > state[bestKey]) state[bestKey] = game === "cps" ? score : Math.round(score);
+}
+state.tests++;
+saveState();
+updateUI();
+}
+
+/* REACTION TIME */
+function startReaction(){
+const html=`
+<div class="gs-hint">Click the circle below to begin. When it turns <b>GREEN</b>, click again as fast as you can. <br><span style="font-size:9px; opacity:0.5">(Press Space to start)</span></div>
+<div class="target-wrap">
+<button class="target idle" id="reaction-target" type="button">
+<div class="target-text" id="reaction-text">TAP TO START<small>GET READY</small></div>
+</button>
+</div>
+`;
+gsBody.innerHTML=html;
+const target=$("reaction-target");
+const text=$("reaction-text");
+let phase="idle", startTime=0, timer=null, locked=false;
+
+function triggerWait() {
+if(locked) return;
+phase="waiting";
+target.classList.remove("idle");
+target.classList.add("wait");
+text.innerHTML="WAIT...<small>DON'T CLICK YET</small>";
+const delay=1000+Math.random()*4000;
+timer=setTimeout(()=>{
+phase="ready";
+startTime=performance.now();
+target.classList.remove("wait");
+target.classList.add("ready");
+text.innerHTML="CLICK NOW!<small>GO GO GO</small>";
+sound("go");
+},delay);
+}
+
+target.addEventListener("click",()=>{
+if(locked)return;
+if(phase==="idle"){ triggerWait(); return; }
+if(phase==="waiting"){
+clearTimeout(timer);
+phase="idle";
+locked=true;
+target.classList.remove("wait");
+target.classList.add("click");
+text.innerHTML="TOO SOON!<small>TAP TO RETRY</small>";
+sound("fail");
+gameBg.style.background = "rgba(255,91,157,0.2)";
+setTimeout(()=>{
+gameBg.style.background = "";
+target.classList.remove("click");
+target.classList.add("idle");
+text.innerHTML="TAP TO START<small>GET READY</small>";
+phase="idle";
+locked=false;
+},1200);
+return;
+}
+if(phase==="ready"){
+phase="done"; locked=true;
+const rt=Math.round(performance.now()-startTime);
+target.classList.remove("ready");
+target.classList.add("click");
+text.innerHTML="NICE!<small>PROCESSING...</small>";
+sound("success");
+recordScore("reaction",rt);
+setTimeout(()=>{ showResults("reaction","REACTION TIME",rt+"ms",rt,()=>startReaction()); },400);
+}
+});
+
+document.addEventListener("keydown", e => {
+if(e.code === "Space" && phase === "idle" && !locked && currentGame === "reaction") {
+e.preventDefault(); triggerWait();
+}
+}, {once: true});
+}
+
+/* CPS */
+function startCps(){
+const html=`
+<div class="gs-hint">Click as fast as you can. You have <b>5 seconds</b>.</div>
+<button class="clickpad" id="cps-pad" type="button">
+<div>
+<div class="clickpad-count" id="cps-count">0</div>
+<div class="clickpad-text">CLICK!</div>
+</div>
+<div class="click-ripple" id="cps-ripple"></div>
+</button>
+<div class="cps-timer">TIME: <b id="cps-time">5.00</b>s</div>
+`;
+gsBody.innerHTML=html;
+const pad=$("cps-pad"),count=$("cps-count"),time=$("cps-time"),ripple=$("cps-ripple");
+let clicks=0,started=false,startTime=0,ended=false, rafId=null;
+
+function clickPad(e){
+if(ended)return;
+e.preventDefault();
+if(!started){ started=true; startTime=performance.now(); sound("beep"); rafId=requestAnimationFrame(updateTimer); }
+clicks++;
+count.textContent=clicks;
+sound("click");
+ripple.classList.remove("animate");void ripple.offsetWidth;ripple.classList.add("animate");
+
+if (clicks > 8 && clicks % 2 === 0) {
+gameBg.style.background = "rgba(255,91,157,0.3)";
+setTimeout(() => { gameBg.style.background = ""; }, 100);
+}
+}
+
+function updateTimer(){
+if(ended)return;
+const elapsed=(performance.now()-startTime)/1000;
+const remain=Math.max(0,5-elapsed);
+time.textContent=remain.toFixed(2);
+if(remain<=0){endTest();return;}
+rafId=requestAnimationFrame(updateTimer);
+}
+function endTest(){
+if(ended)return;
+ended=true;
+if(rafId)cancelAnimationFrame(rafId);
+pad.removeEventListener("pointerdown",clickPad);
+const cps=clicks/5;
+recordScore("cps",cps);
+setTimeout(()=>{ showResults("cps","CLICKS PER SECOND",cps.toFixed(1)+" CPS",cps,()=>startCps()); },300);
+}
+pad.addEventListener("pointerdown",clickPad,{passive:false});
+}
+
+/* SEQUENCE */
+const memIcons=[
+'<circle cx="12" cy="12" r="3"/>',
+'<rect x="6" y="6" width="12" height="12" rx="2"/>',
+'<path d="m12 3 9 16H3L12 3Z"/>',
+'<path d="M12 2v20M2 12h20"/>',
+'<path d="m4 4 16 16M20 4 4 20"/>',
+'<path d="M12 3v18M3 9h18M3 15h18"/>',
+'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+'<path d="M4 6h16M4 12h16M4 18h16"/>',
+'<path d="m12 2 3 9 9 3-9 3-3 9-3-9-9-3 9-3 3-9Z"/>'
+];
+
+function soundPitch(index, isAi) {
+if(!soundOn) return;
+try {
+const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+audio ||= new C(); if(audio.state === "suspended") audio.resume();
+const now = audio.currentTime;
+const freqs = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
+const freq = freqs[index % freqs.length];
+const o = audio.createOscillator(), g = audio.createGain();
+o.type = isAi ? "sine" : "triangle";
+o.frequency.setValueAtTime(freq, now);
+g.gain.setValueAtTime(.0001, now);
+g.gain.exponentialRampToValueAtTime(isAi ? .04 : .06, now + 0.02);
+g.gain.exponentialRampToValueAtTime(.0001, now + 0.3);
+o.connect(g); g.connect(audio.destination);
+o.start(now); o.stop(now + 0.35);
+} catch {}
+}
+
+function startSequence(){
+const html=`
+<div class="gs-hint" id="seq-hint">Click the button below to begin. Watch the pattern, then repeat it back.</div>
+<button class="ready-btn" id="seq-start" type="button">TAP TO START</button>
+<div id="seq-wrap" style="display:none">
+<div class="mem-grid" id="mem-grid">
+${Array.from({length:9},(_,i)=>`<button class="mem-cell" data-idx="${i}" type="button"><svg viewBox="0 0 24 24">${memIcons[i]}</svg></button>`).join("")}
+</div>
+<div class="mem-status">LEVEL: <b id="mem-level">1</b></div>
+</div>
+`;
+gsBody.innerHTML=html;
+const startBtn=$("seq-start"), wrap=$("seq-wrap"), levelEl=$("mem-level"), hintEl=$("seq-hint");
+const cells=Array.from(document.querySelectorAll(".mem-cell"));
+let sequence=[],playerIndex=0,showing=false,gameOver=false,started=false,awaitingNext=false;
+
+startBtn.addEventListener("click",()=>{
+if(started)return;
+started=true;
+startBtn.style.display="none";
+wrap.style.display="block";
+hintEl.innerHTML="Watch the pattern...";
+newRound();
+});
+
+function newRound(){
+sequence.push(Math.floor(Math.random()*9));
+levelEl.textContent=sequence.length;
+playerIndex=0;
+awaitingNext=false;
+showSequence();
+}
+
+function showSequence(){
+showing=true;
+hintEl.innerHTML="Watch the pattern...";
+cells.forEach(c=>c.classList.add("disabled"));
+let i=0;
+function nextFlash(){
+if(i>=sequence.length){
+showing=false;
+hintEl.innerHTML="Your turn! Repeat the pattern.";
+cells.forEach(c=>c.classList.remove("disabled"));
+return;
+}
+const idx=sequence[i];
+cells[idx].classList.add("lit");
+soundPitch(idx, true);
+setTimeout(()=>{
+cells[idx].classList.remove("lit");
+i++;
+setTimeout(nextFlash,180);
+},420);
+}
+setTimeout(nextFlash,500);
+}
+
+cells.forEach((cell,i)=>{
+cell.addEventListener("click",()=>{
+if(showing||gameOver||awaitingNext||!started)return;
+if(sequence[playerIndex]===i){
+cell.classList.add("lit");
+soundPitch(i, false);
+setTimeout(()=>cell.classList.remove("lit"),150);
+playerIndex++;
+if(playerIndex>=sequence.length){
+awaitingNext=true;
+showing=true;
+cells.forEach(c=>c.classList.add("disabled"));
+sound("success");
+hintEl.innerHTML="Correct! Next round...";
+setTimeout(newRound,700);
+}
+return;
+}
+gameOver=true;
+window.lastFailedSequence = [...sequence];
+cell.classList.add("wrong");
+sound("fail");
+setTimeout(()=>cell.classList.remove("wrong"),500);
+const score=sequence.length-1;
+recordScore("sequence",score);
+setTimeout(()=>{ showResults("sequence","SEQUENCE MEMORY",score+" STEPS",score,()=>startSequence()); },800);
+});
+});
+}
+
+/* NUMBER MEMORY */
+function startNumber(){
+const html=`
+<div class="gs-hint" id="num-hint">Memorize this number. When you're ready, click the button below.</div>
+<div class="num-display" id="num-display">—</div>
+<button class="ready-btn" id="num-ready" type="button" style="display:none">I'M READY</button>
+<div id="num-input-wrap" style="margin-top:24px"></div>
+`;
+gsBody.innerHTML=html;
+const hint=$("num-hint"),display=$("num-display"),readyBtn=$("num-ready"),inputWrap=$("num-input-wrap");
+let digits=1,currentNumber="";
+
+function newRound(){
+currentNumber="";
+for(let i=0;i<digits;i++){
+if(i===0)currentNumber+=String(Math.floor(Math.random()*9)+1);
+else currentNumber+=String(Math.floor(Math.random()*10));
+}
+display.textContent=currentNumber;
+display.style.fontSize = digits>10 ? "clamp(36px,8vw,64px)" : "clamp(56px,12vw,96px)";
+display.style.animation = "none";
+void display.offsetWidth;
+display.style.animation = "dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+hint.innerHTML=`Memorize this ${digits}-digit number. When you're ready, click the button below.`;
+readyBtn.style.display="inline-block";
+inputWrap.innerHTML="";
+readyBtn.onclick=()=>{
+readyBtn.style.display="none";
+display.textContent="?";
+hint.innerHTML="Type the number and press Enter.";
+const input=document.createElement("input");
+input.className="num-input";
+input.type="text";
+input.inputMode="numeric";
+input.pattern="[0-9]*";
+input.placeholder="TYPE THE NUMBER";
+input.autocomplete="off";
+inputWrap.appendChild(input);
+setTimeout(()=>input.focus(),50);
+let answered=false;
+input.addEventListener("keydown",e=>{
+if(e.key!=="Enter"||answered)return;
+answered=true;
+input.disabled=true;
+const val=input.value.trim();
+if(val===currentNumber){
+sound("success");
+digits++;
+hint.innerHTML=`<span style="color:var(--green);font-weight:900;letter-spacing:2px">CORRECT! Next: ${digits} digits...</span>`;
+setTimeout(newRound,1400);
+}else{
+sound("fail");
+window.lastFailedNumber = currentNumber;
+hint.innerHTML=`<span style="color:var(--pink);font-weight:900;letter-spacing:2px">WRONG.</span>`;
+const score=digits-1;
+recordScore("number",score);
+setTimeout(()=>{ showResults("number","NUMBER MEMORY",score+" DIGITS",score,()=>startNumber()); },1800);
+}
+});
+};
+}
+newRound();
+}
+
+/* TYPING FIXED */
+const baseSentences = [
+"The quick brown fox jumps over the lazy dog while the sun sets slowly behind the distant mountains.",
+"Success is not final, failure is not fatal: it is the courage to continue that counts.",
+"In the middle of difficulty lies opportunity, and in the middle of chaos lies clarity.",
+"The greatest glory in living lies not in never falling, but in rising every time we fall.",
+"Every moment is a fresh beginning, a chance to start over and do something remarkable.",
+"Simplicity is the ultimate sophistication, and elegance is the art of doing more with less.",
+"Not all those who wander are lost; some are simply seeking a different kind of destination.",
+"The only way to do great work is to love what you do, and love what you do every single day.",
+"Programming is the art of telling another human what one wants the computer to do.",
+"The best way to predict the future is to invent it, so start building the world you want to see.",
+"Life is what happens when you're busy making other plans, so pay attention to the little things.",
+"Creativity is intelligence having fun, and the best ideas come when you least expect them.",
+"A journey of a thousand miles begins with a single step toward something new and uncertain.",
+"Imagination is more important than knowledge, for knowledge is limited while imagination circles the world.",
+"The future belongs to those who believe in the beauty of their dreams and work to make them real.",
+"Talk is cheap until you hire a lawyer, and advice is free until you actually follow it.",
+"Great things are done by a series of small things brought together with steady patience.",
+"The quieter you become, the more you are able to hear the world around you clearly.",
+"Somewhere something incredible is waiting to be known by someone curious enough to find it.",
+"We are what we repeatedly do; excellence then is not an act but a habit built over time."
+];
+
+const typingPassages = [];
+for (let i = 0; i < 3000; i++) {
+let s1 = baseSentences[Math.floor(Math.random() * baseSentences.length)];
+if (s1.length < 60) {
+let s2;
+do { s2 = baseSentences[Math.floor(Math.random() * baseSentences.length)]; } while (s1 === s2);
+typingPassages.push(s1 + " " + s2);
+} else {
+typingPassages.push(s1);
+}
+}
+
+let typingCleanup=null;
+
+function startTyping(){
+if(typingCleanup){typingCleanup();typingCleanup=null;}
+
+let passage;
+do { passage=typingPassages[Math.floor(Math.random()*typingPassages.length)]; } while(typingPassages.length>1 && passage===state.lastTypingPassage);
+state.lastTypingPassage=passage;
+saveState();
+
+const textHTML = passage.split("").map((ch) => {
+let displayCh = ch === " " ? " " : ch;
+return '<span>' + displayCh + '</span>';
+}).join("");
+
+const html = `
+<div class="gs-hint" style="position:relative;">Type the passage below as fast and accurately as you can.</div>
+<div class="type-text" id="type-text" style="position:relative;">
+<div id="ghost-cursor"></div>
+<div class="combo-popup" id="combo-popup">PERFECT COMBO!</div>
+${textHTML}
+</div>
+<div class="type-stats">
+<div class="type-stat"><small>WPM</small><b id="type-wpm">0</b></div>
+<div class="type-stat"><small>ACCURACY</small><b id="type-acc">100%</b></div>
+<div class="type-stat"><small>PROGRESS</small><b id="type-progress" class="gold">0/${passage.length}</b></div>
+</div>
+`;
+gsBody.innerHTML = html;
+
+const spans = Array.from(document.querySelectorAll("#type-text span"));
+const wpmEl = $("type-wpm"), accEl = $("type-acc"), progEl = $("type-progress");
+const ghostCursor = $("ghost-cursor"), comboPopup = $("combo-popup");
+let idx=0, correct=0, typed=0, startTime=0, ended=false, lastKeyTime=0, combo=0;
+
+if (spans.length > 0) spans[0].classList.add("current");
+
+// Setup Ghost Cursor
+let pbWpm = state.bestTyping || 0;
+let ghostInterval = null;
+if (pbWpm > 0) {
+ghostCursor.classList.add("active");
+let pbCharsPerSec = (pbWpm * 5) / 60;
+let ghostIdx = 0;
+ghostInterval = setInterval(() => {
+ghostIdx += pbCharsPerSec * 0.1;
+if(ghostIdx >= passage.length || ended) { clearInterval(ghostInterval); return; }
+let rect = spans[Math.floor(ghostIdx)].getBoundingClientRect();
+let textRect = $("type-text").getBoundingClientRect();
+ghostCursor.style.left = (rect.left - textRect.left) + "px";
+ghostCursor.style.top = (rect.top - textRect.top) + "px";
+}, 100);
+}
+
+const oldInput = document.getElementById("typing-hidden-input");
+if(oldInput) oldInput.remove();
+
+const input = document.createElement("input");
+input.id = "typing-hidden-input";
+input.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0;";
+input.autocomplete = "off"; input.autocorrect = "off"; input.autocapitalize = "off"; input.spellcheck = false;
+document.body.appendChild(input);
+setTimeout(() => input.focus({preventScroll:true}), 50);
+
+function updateStats() {
+const elapsed = (performance.now() - startTime) / 1000;
+const wpm = startTime > 0 && elapsed > 0 ? Math.round((correct / 5) / (elapsed / 60)) : 0;
+wpmEl.textContent = wpm;
+const acc = typed > 0 ? Math.round((correct / typed) * 100) : 100;
+accEl.textContent = acc + "%";
+progEl.textContent = `${idx}/${passage.length}`;
+}
+
+function keyHandler(e) {
+if (ended) return;
+if (document.querySelector("dialog[open]")) return;
+if (e.repeat) { e.preventDefault(); return; }
+
+if (e.key === "Backspace") {
+e.preventDefault();
+if (idx > 0) {
+idx--; typed = Math.max(0, typed - 1);
+spans[idx].classList.remove("correct", "incorrect");
+spans[idx].classList.add("current");
+if (idx + 1 < spans.length) spans[idx + 1].classList.remove("current");
+correct = spans.filter(s => s.classList.contains("correct")).length;
+updateStats();
+}
+return;
+}
+
+if (e.key.length !== 1) return;
+if (e.ctrlKey || e.metaKey || e.altKey) return;
+e.preventDefault();
+
+const now = performance.now();
+if (now - lastKeyTime < 15) return;
+lastKeyTime = now;
+
+if (!startTime) startTime = performance.now();
+if (idx >= passage.length) return;
+
+const expected = passage[idx];
+const typedCh = e.key;
+typed++;
+
+spans[idx].classList.remove("current");
+if (typedCh === expected) {
+spans[idx].classList.add("correct");
+correct++;
+// Combo Logic
+if (typedCh === " " || idx === passage.length-1) {
+combo++;
+if(combo > 0 && combo % 10 === 0) {
+comboPopup.classList.remove("pop"); void comboPopup.offsetWidth; comboPopup.classList.add("pop");
+sound("success");
+}
+}
+} else {
+spans[idx].classList.add("incorrect");
+combo = 0;
+}
+
+sound(typedCh === expected ? "tick" : "click");
+idx++;
+
+if (idx < spans.length) spans[idx].classList.add("current");
+updateStats();
+
+// Sweat Mode
+if (pbWpm > 0 && wpmEl.textContent > pbWpm && !ended) {
+gameBg.style.background = "radial-gradient(ellipse at 50% 30%,rgba(112,239,180,.2),transparent 60%)";
+} else if (!ended) {
+gameBg.style.background = "";
+}
+
+if (idx >= passage.length) {
+ended = true; sound("success"); clearInterval(ghostInterval);
+const elapsed = (performance.now() - startTime) / 1000;
+const finalWpm = Math.round((correct / 5) / (elapsed / 60));
+const clampedWpm = Math.min(finalWpm, 300);
+recordScore("typing", clampedWpm);
+setTimeout(() => { showResults("typing", "TYPING SPEED", clampedWpm + " WPM", clampedWpm, () => startTyping()); }, 300);
+}
+}
+
+input.addEventListener("keydown", keyHandler);
+input.focus({ preventScroll: true });
+function refocus() { if (!ended && !document.querySelector("dialog[open]")) input.focus({ preventScroll: true }); }
+gsBody.addEventListener("click", refocus);
+
+typingCleanup = function() {
+input.removeEventListener("keydown", keyHandler);
+gsBody.removeEventListener("click", refocus);
+input.remove();
+clearInterval(ghostInterval);
+};
+}
+
+document.addEventListener('copy', (e) => {
+if (document.getElementById("num-display") && document.getElementById("num-display").textContent !== "?") {
+let fakeNum = "";
+for (let i = 0; i < 15; i++) fakeNum += Math.floor(Math.random() * 10);
+e.clipboardData.setData('text/plain', fakeNum);
+e.preventDefault();
+notify("COPYING DISABLED");
+}
+});
+</script>
+</body>
+</html>
+
