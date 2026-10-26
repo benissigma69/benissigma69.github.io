@@ -1,0 +1,2232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080911">
+<title>SWIRL - Idle Lab</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ff5b9d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'/><path d='M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z'/><path d='M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/></svg>">
+<style>
+:root{
+--bg:#080911;--panel:rgba(18,20,33,.6);--line:rgba(255,255,255,.09);
+--text:#f4f5fb;--muted:#9b9eaf;--cyan:#35e5f3;--purple:#a47aff;
+--pink:#ff5b9d;--gold:#ffd16c;--green:#70efb4;
+
+--font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html{cursor: none !important;}
+body{
+margin:0;min-height:100vh;color:var(--text);overflow-x:hidden;
+font-family:var(--font-main);
+background:
+radial-gradient(ellipse at 12% 8%,rgba(115,73,208,.16),transparent 38%),
+radial-gradient(ellipse at 88% 82%,rgba(28,195,216,.11),transparent 40%),var(--bg);
+cursor: none !important;
+}
+/* Hide native cursor everywhere except dialogs */
+button, a, input, select, textarea, .upgrade, .tab, .buy-tab, dialog, .big-rect-btn, .ach-item, .small-button, .prestige-btn, #golden, .brand, #enter-btn {
+cursor: none !important;
+}
+/* Show native cursor inside dialogs */
+#prestige-store-dialog, #prestige-store-dialog *,
+#prestige-dialog, #prestige-dialog *,
+#reset-dialog, #reset-dialog * {
+cursor: auto !important;
+}
+#prestige-store-dialog button,
+#prestige-dialog button,
+#reset-dialog button {
+cursor: pointer !important;
+}
+/* Force custom cursor above all modal layers */
+dialog[open] ~ #cursor-dot,
+body.dialog-open #cursor-dot {
+z-index: 2147483647 !important;
+}
+
+button{font:inherit; font-family: var(--font-main);}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+
+/* ---------- CUSTOM CURSOR ---------- */
+#cursor-dot {
+position: fixed; top: 0; left: 0; width: 8px; height: 8px;
+background: var(--cyan); border-radius: 50%;
+pointer-events: none; z-index: 99999;
+transform: translate(-50%, -50%);
+box-shadow: 0 0 10px var(--cyan);
+transition: transform 0.1s ease, background-color 0.2s ease;
+will-change: transform, left, top;
+}
+body:active #cursor-dot {
+transform: translate(-50%, -50%) scale(0.7);
+background: var(--gold);
+}
+
+/* ---------- CUSTOM SCROLLBAR (STORE) ---------- */
+#store-items {
+max-height: 55vh;
+overflow-y: auto;
+padding-right: 8px;
+scrollbar-width: thin;
+scrollbar-color: var(--cyan) rgba(255,255,255,.06);
+}
+#store-items::-webkit-scrollbar {
+width: 10px;
+}
+#store-items::-webkit-scrollbar-track {
+background: rgba(255,255,255,.06);
+border-radius: 10px;
+}
+#store-items::-webkit-scrollbar-thumb {
+background: linear-gradient(180deg, var(--cyan), var(--purple));
+border-radius: 10px;
+border: 2px solid #111320;
+box-shadow: 0 0 10px rgba(53,229,243,.5);
+}
+#store-items::-webkit-scrollbar-thumb:hover {
+background: linear-gradient(180deg, var(--purple), var(--cyan));
+}
+
+/* ---------- BACKGROUND ---------- */
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#shooting{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.aurora{position:fixed;width:500px;height:500px;border-radius:50%;filter:blur(140px);opacity:.12;pointer-events:none;z-index:0;animation:drift 22s ease-in-out infinite alternate}
+.aurora.a{left:-200px;top:-150px;background:var(--purple)}
+.aurora.b{right:-200px;bottom:-150px;background:var(--cyan);animation-delay:-11s}
+@keyframes drift{to{transform:translate(100px,80px) scale(1.2)}}
+
+.prestige-aura {
+position: fixed; inset: 0; pointer-events: none; z-index: 1;
+box-shadow: inset 0 0 100px rgba(255, 91, 157, 0);
+transition: box-shadow 2s ease;
+}
+
+.clock {
+position: fixed; bottom: 20px; right: 24px;
+color: rgba(255,255,255,0.25);
+font-size: 11px; font-weight: 800; letter-spacing: 1px;
+font-variant-numeric: tabular-nums;
+z-index: 50; pointer-events: none;
+}
+
+/* ---------- LANDING PAGE ---------- */
+#landing {
+position: fixed; inset: 0; z-index: 10000;
+display: flex; flex-direction: column; align-items: center; justify-content: center;
+background: var(--bg);
+transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+#landing.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+#landing h1 {
+font-size: clamp(40px, 10vw, 80px); font-weight: 1000; letter-spacing: -4px;
+background: linear-gradient(135deg, var(--pink), var(--gold));
+-webkit-background-clip: text; -webkit-text-fill-color: transparent;
+margin: 0 0 10px; text-align: center;
+filter: drop-shadow(0 0 30px rgba(255,91,157,0.3));
+}
+#landing p { color: var(--muted); font-size: 12px; letter-spacing: 3px; margin-bottom: 40px; text-align: center; }
+#enter-btn {
+padding: 16px 48px; border: 2px solid var(--cyan); border-radius: 12px;
+background: transparent; color: var(--cyan); font-size: 14px; font-weight: 950;
+letter-spacing: 4px; transition: all 0.3s ease;
+}
+#enter-btn:hover {
+background: rgba(53,229,243,.1); box-shadow: 0 0 40px rgba(53,229,243,.3);
+transform: scale(1.05);
+}
+#enter-btn:active { transform: scale(0.98); }
+
+.app{position:relative;z-index:2;width:min(1160px,100%);margin:auto;padding:24px 20px 48px;transition:transform .3s cubic-bezier(0.2, 0.8, 0.2, 1)}
+.app.pushed{transform:translateX(-340px)}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:950;letter-spacing:3px}
+.brand svg{width:24px;height:24px; filter: drop-shadow(0 0 8px rgba(255,91,157,0.3));}
+.brand span{color:var(--cyan)}
+.header-actions{display:flex;align-items:center;gap:8px}
+.status,.small-button{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);color:var(--muted);font-size:9px;letter-spacing:1px;transition: all 0.2s;}
+.small-button:hover{color:var(--pink);border-color:var(--pink);transform:translateY(-1px)}
+.ach-btn{color:var(--gold);border-color:rgba(255,209,108,.3)}
+.ach-btn:hover{color:var(--gold);border-color:var(--gold);background:rgba(255,209,108,.08)}
+.prestige-btn-top{color:var(--pink);border-color:rgba(255,91,157,.3)}
+.prestige-btn-top:hover{color:var(--pink);border-color:var(--pink);background:rgba(255,91,157,.08)}
+
+.hero{position:relative;overflow:hidden;margin-bottom:13px;padding:23px;border:1px solid var(--line);border-radius:20px;background:var(--panel);backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow:0 20px 65px #0005; transition: box-shadow 0.3s ease;}
+.hero:hover{box-shadow:0 20px 65px rgba(53,229,243,0.1);}
+.hero:after{content:"";position:absolute;right:-130px;top:-235px;width:440px;height:440px;border:1px solid #35e5f322;border-radius:50%;box-shadow:0 0 0 30px #35e5f308,0 0 0 65px #a47aff08;pointer-events:none}
+.hero-top,.hero-bottom{position:relative;z-index:1}
+.hero-top{display:flex;justify-content:space-between;gap:16px}
+.label{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:2.5px}
+.energy-line{display:flex;align-items:baseline;gap:9px;margin-top:8px}
+#flux{font-size:clamp(40px,8vw,68px);font-weight:1000;line-height:1;letter-spacing:-4px;color:var(--cyan);text-shadow:0 0 30px #35e5f355;}
+.unit{color:var(--cyan);font-size:9px;font-weight:900;letter-spacing:2px}
+.cash-box{text-align:right}
+#cash{margin-top:7px;color:var(--gold);font-size:clamp(26px,5vw,40px);font-weight:950;letter-spacing:-2px}
+.rate-note{margin-top:4px;color:var(--muted);font-size:9px}
+.rate-note strong{color:var(--gold)}
+.hero-bottom{display:flex;justify-content:space-between;align-items:end;gap:14px;margin-top:20px}
+.rates{display:flex;flex-wrap:wrap;gap:15px;color:var(--muted);font-size:9px}
+.rates strong{color:var(--green)}
+.rates .gold{color:var(--gold)}
+.rates .purple{color:var(--purple)}
+
+/* Next goal ticker */
+.next-goal-ticker {
+display: flex; align-items: center; gap: 8px;
+margin-top: 12px; padding: 8px 12px;
+border: 1px solid rgba(53,229,243,.2); border-radius: 8px;
+background: rgba(53,229,243,.05);
+font-size: 10px; color: var(--muted);
+}
+.next-goal-ticker strong { color: var(--cyan); }
+
+.click-zone{position:relative;z-index:3;display:flex;justify-content:center;align-items:center;margin:10px 0 24px;transition: transform 0.05s ease-out;}
+.big-rect-btn{
+position:relative;width:100%;max-width:500px;padding:24px 30px;border-radius:16px;
+border:2px solid rgba(53,229,243,.4);
+background:linear-gradient(135deg, rgba(27,31,50,1), rgba(14,17,27,1));
+box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 0 20px rgba(53,229,243,.05);
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+transition:all .2s cubic-bezier(0.2, 0.8, 0.2, 1);
+user-select:none;-webkit-tap-highlight-color:transparent;overflow:hidden;
+}
+.big-rect-btn:hover{transform:translateY(-2px);border-color:rgba(53,229,243,.8);box-shadow:0 15px 50px rgba(0,0,0,.6), inset 0 0 30px rgba(53,229,243,.15), 0 0 40px rgba(53,229,243,.2);}
+.big-rect-btn:active{transform:scale(0.96) translateY(2px);border-color:var(--cyan);box-shadow:0 5px 20px rgba(0,0,0,.7), inset 0 0 40px rgba(53,229,243,.2);}
+
+.big-rect-btn.tier-0 { border-color: rgba(53,229,243,.4); box-shadow: 0 10px 40px rgba(0,0,0,.5), inset 0 0 20px rgba(53,229,243,.05); }
+.big-rect-btn.tier-1 { border-color: rgba(112,239,180,.6); box-shadow: 0 10px 40px rgba(0,0,0,.5), inset 0 0 30px rgba(112,239,180,.15); }
+.big-rect-btn.tier-2 { border-color: rgba(164,122,255,.7); box-shadow: 0 10px 40px rgba(0,0,0,.5), inset 0 0 40px rgba(164,122,255,.2); }
+.big-rect-btn.tier-3 { border-color: rgba(255,91,157,.8); box-shadow: 0 10px 50px rgba(0,0,0,.5), inset 0 0 50px rgba(255,91,157,.25); }
+.big-rect-btn.tier-4 { border-color: rgba(255,209,108,.9); box-shadow: 0 10px 60px rgba(0,0,0,.5), inset 0 0 60px rgba(255,209,108,.3); }
+
+.big-rect-btn.frenzy{
+border-color:var(--gold);
+background:linear-gradient(135deg, rgba(50,40,20,1), rgba(20,15,10,1));
+box-shadow:0 0 50px rgba(255,209,108,.3), 0 10px 40px rgba(0,0,0,.5);
+}
+.big-rect-btn.frenzy .btn-plus{color:var(--gold); text-shadow:0 0 20px rgba(255,209,108,.8)}
+.big-rect-btn.frenzy .btn-label{color:rgba(255,209,108,.7)}
+
+.btn-plus{font-size:48px;font-weight:1000;color:var(--cyan);line-height:1;text-shadow:0 0 20px rgba(53,229,243,.5);letter-spacing:-2px;transition:color .3s, transform .1s;}
+.btn-label{font-size:10px;font-weight:900;letter-spacing:4px;color:rgba(53,229,243,.6);margin-top:8px;transition:color .3s;}
+
+.click-ripple{position:absolute;top:50%;left:50%;width:100px;height:100px;margin-top:-50px;margin-left:-50px;border-radius:50%;border:2px solid rgba(53,229,243,.6);opacity:0;transform:scale(.5);pointer-events:none;}
+.click-ripple.animate{animation:rippleExpand .4s ease-out forwards}
+@keyframes rippleExpand{0%{opacity:1;transform:scale(.5)}100%{opacity:0;transform:scale(4)}}
+
+.meta{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
+.panel{padding:15px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow:0 14px 40px #0002; transition: all 0.3s ease;}
+.daily{border-color:#ffd16c33;background:linear-gradient(105deg,rgba(255,209,108,.08),rgba(164,122,255,.05))}
+.daily:hover{border-color:#ffd16c66;}
+.daily-title,.prestige-title{font-size:10px;font-weight:950;letter-spacing:2px}
+.daily-title{color:var(--gold)}
+.daily-desc,.prestige-desc{margin-top:5px;color:var(--muted);font-size:9px;line-height:1.5}
+.progress{height:6px;margin-top:11px;overflow:hidden;border-radius:9px;background:#ffffff16}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--green));transition:width .4s}
+.daily-bottom{display:flex;justify-content:space-between;margin-top:7px;color:var(--muted);font-size:8px;letter-spacing:.7px}
+.daily-timer {margin-top:6px;color:var(--gold);font-size:8px;font-weight:800;letter-spacing:1px;font-variant-numeric:tabular-nums;}
+.prestige{border-color:#ff5b9d44;background:linear-gradient(105deg,rgba(255,91,157,.08),rgba(164,122,255,.05))}
+.prestige:hover{border-color:#ff5b9d88;}
+.prestige-title{color:var(--pink)}
+.prestige-core-count{margin-top:10px;color:var(--pink);font-size:20px;font-weight:950}
+.prestige-btn{width:100%;margin-top:10px;padding:11px;border:0;border-radius:9px;background:var(--pink);color:white;font-size:9px;font-weight:950;letter-spacing:1px;transition:.2s}
+.prestige-btn:disabled{opacity:.4;}
+.prestige-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px #ff5b9d55}
+
+/* Chapter roadmap */
+.chapter-container{margin-bottom:13px;}
+.chapter-header{display:flex;justify-content:space-between;align-items:center;padding:0 4px;margin-bottom:6px;}
+.chapter-text{font-size:9px; font-weight:900; color:var(--cyan); letter-spacing:1px;}
+.chapter-roadmap{display:flex;gap:4px; width: 100%;}
+.chapter-node{flex:1; height:6px; border-radius:4px;background: rgba(255,255,255,0.05);position:relative; overflow:hidden;}
+.chapter-node-fill {position: absolute; top: 0; left: 0; bottom: 0;background: var(--cyan); border-radius: 4px;width: 0%; transition: width 0.4s ease;}
+.chapter-node.active .chapter-node-fill {background: var(--cyan); box-shadow: 0 0 10px var(--cyan); width: 100%;}
+.chapter-node.next .chapter-node-fill {background: rgba(53,229,243,0.6); box-shadow: 0 0 8px rgba(53,229,243,0.4);}
+.chapter-node.future {border: 1px solid rgba(255,255,255,0.1);}
+
+/* Grand goal tracker */
+.grand-goal {
+margin-bottom: 13px; padding: 15px;
+border: 1px solid rgba(255, 91, 157, 0.3); border-radius: 16px;
+background: linear-gradient(105deg, rgba(255,91,157,.08), rgba(164,122,255,.05));
+box-shadow: 0 14px 40px #0002;
+}
+.grand-goal-title { font-size: 10px; font-weight: 950; letter-spacing: 2px; color: var(--pink); }
+.grand-goal-desc { margin-top: 5px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+.grand-goal-progress { height: 8px; margin-top: 11px; overflow: hidden; border-radius: 9px; background: #ffffff16; }
+.grand-goal-progress div { height: 100%; width: 0; background: linear-gradient(90deg, var(--pink), var(--gold)); transition: width .5s; }
+.grand-goal-bottom { display: flex; justify-content: space-between; margin-top: 8px; color: var(--muted); font-size: 8px; letter-spacing: .7px; }
+
+.layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(250px,.72fr);gap:13px}
+.card{padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow:0 14px 40px #0002}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.card-title{font-size:9px;font-weight:950;letter-spacing:2.5px}
+.card-note{color:var(--muted);font-size:7px;letter-spacing:1px;text-align:right}
+
+.tabs{display:flex;gap:6px;overflow:auto;padding-bottom:10px}
+.tab{flex:0 0 auto;padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:#ffffff05;color:var(--muted);font-size:8px;font-weight:900;letter-spacing:1px;transition:0.2s}
+.tab:hover,.tab.active{color:var(--cyan);border-color:#35e5f366;background:#35e5f312}
+
+.buy-tabs{display:flex;gap:6px;margin-bottom:12px;background:rgba(255,255,255,.03);padding:4px;border-radius:9px;border:1px solid var(--line)}
+.buy-tab{flex:1;padding:6px;border:0;border-radius:6px;background:transparent;color:var(--muted);font-size:9px;font-weight:900;transition:.2s}
+.buy-tab:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.buy-tab.active{background:rgba(53,229,243,.15);color:var(--cyan);box-shadow:0 2px 10px rgba(0,0,0,.2)}
+
+.upgrades{display:grid;gap:7px}
+.upgrade{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px;border:1px solid #ffffff10;border-radius:11px;background:rgba(255,255,255,.03);transition:.15s; position: relative; overflow: hidden;}
+.upgrade:hover{border-color:#35e5f366;background:rgba(53,229,243,.06); transform: translateX(2px);}
+.upgrade.unaffordable{opacity:.58}
+.upgrade.locked{opacity:.4; filter:grayscale(1); border-style:dashed;}
+.upgrade.affordable-glow::before {content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);animation: shimmer 2.5s infinite;}
+@keyframes shimmer { 100% { left: 100%; } }
+
+.icon{display:grid;place-items:center;width:35px;height:35px;border:1px solid #35e5f322;border-radius:9px;color:var(--cyan);background:linear-gradient(135deg,#30e4f322,#a47aff2d); transition: transform 0.2s ease;}
+.upgrade:hover .icon { transform: scale(1.1); }
+.icon svg{display:block;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.up-name{font-size:9px;font-weight:900}
+.up-desc{margin-top:3px;color:var(--muted);font-size:7px;line-height:1.45}
+.up-level{margin-top:4px;color:var(--cyan);font-size:7px;font-weight:850;letter-spacing:.8px}
+.buy{min-width:94px;padding:8px 6px;border:1px solid var(--line);border-radius:8px;background:#ffffff0b;color:var(--text);font-size:8px;font-weight:950;letter-spacing:.7px;transition: all 0.2s;}
+.buy.cash{color:var(--gold)}
+.buy:disabled{opacity:.4;}
+.buy:hover:not(:disabled){border-color:#ffd16c88;background:#ffd16c12;color:var(--gold); transform: translateY(-1px);}
+.buy small{display:block;margin-top:4px;color:var(--muted);font-size:7px;letter-spacing:0}
+.side{display:grid;align-content:start;gap:13px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.stat{padding:10px;border:1px solid #ffffff10;border-radius:10px;background:#ffffff08; transition: 0.2s;}
+.stat:hover{background:#ffffff0d;}
+.stat small{display:block;color:var(--muted);font-size:7px;letter-spacing:1px}
+.stat b{display:block;margin-top:6px;font-size:15px}
+.stat:nth-child(1) b{color:var(--green)}.stat:nth-child(2) b{color:var(--gold)}
+.stat:nth-child(3) b{color:var(--purple)}.stat:nth-child(4) b{color:var(--cyan)}
+.log{display:flex; flex-direction:column; gap:6px;max-height:240px;overflow-y:auto;}
+.log-entry{padding:8px;border-left:2px solid var(--purple);background:rgba(255,255,255,.03);color:var(--muted);font-size:8px;line-height:1.45;}
+.log-entry b{color:var(--text)}
+.empty{text-align:center;color:var(--muted);font-size:9px;padding:20px 10px;font-style:italic}
+footer{margin-top:16px;text-align:center;color:#ffffff40;font-size:7px;letter-spacing:2px}
+
+.toast{position:fixed;z-index:50;left:50%;bottom:20px;transform:translate(-50%,12px);opacity:0;padding:10px 14px;border:1px solid var(--line);border-radius:9px;color:var(--gold);background:#0c0e16f5;font-size:9px;letter-spacing:1px;transition:.2s;pointer-events:none;white-space:nowrap;box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px);}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.ach-popup {position: fixed; top: 24px; right: 24px; z-index: 1000;background: linear-gradient(135deg, #1a1c2c, #0f111a);border: 1px solid var(--gold);border-radius: 12px; padding: 16px;box-shadow: 0 10px 40px rgba(255, 209, 108, 0.2), 0 5px 20px rgba(0,0,0,0.8);transform: translateX(120%); opacity: 0;transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;display: flex; align-items: center; gap: 12px;pointer-events: none;}
+.ach-popup.show { transform: translateX(0); opacity: 1; }
+.ach-popup-icon {width: 40px; height: 40px; border-radius: 50%;background: rgba(255, 209, 108, 0.15); color: var(--gold);display: grid; place-items: center;}
+.ach-popup-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
+.ach-popup-text { display: flex; flex-direction: column; }
+.ach-popup-title { font-size: 9px; color: var(--gold); font-weight: 900; letter-spacing: 1px; margin-bottom: 2px; }
+.ach-popup-name { font-size: 12px; font-weight: 950; color: white; }
+
+#golden-container {position: fixed; z-index: 10; display: none; pointer-events: none;}
+#golden-container.show { display: block; }
+#golden{position: absolute; top: 0; left: 0;width: 56px; height: 56px;border: 2px solid white; border-radius: 50%;background: radial-gradient(circle,var(--gold),#ff9d00);box-shadow: 0 0 30px var(--gold), 0 0 70px #ff9d00;pointer-events: auto;opacity: 0; transform: scale(0.1);transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+#golden-container.show #golden { opacity: 1; transform: scale(1); }
+#golden:hover { transform: scale(1.1); }
+@keyframes bob {0%, 100% { transform: translateY(0); }50% { transform: translateY(-12px); }}
+#golden { animation: bob 2s ease-in-out infinite; }
+
+.golden-trail {position: absolute; width: 6px; height: 6px;background: var(--gold); border-radius: 50%;pointer-events: none;animation: trailFade 0.6s ease-out forwards;}
+@keyframes trailFade {from { opacity: 1; transform: scale(1) translateY(0); }to { opacity: 0; transform: scale(0.2) translateY(20px); }}
+
+.golden-label {
+position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+font-size: 8px; font-weight: 950; letter-spacing: 1px; color: var(--gold);
+text-shadow: 0 0 8px rgba(0,0,0,0.8); white-space: nowrap;
+pointer-events: none;
+}
+
+.ach-panel{position:fixed;top:0;right:0;bottom:0;width:340px;background:var(--bg);border-left:1px solid var(--line);z-index:100;transform:translateX(100%);transition:transform .3s cubic-bezier(0.2, 0.8, 0.2, 1);display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.8);}
+.ach-panel.open{transform:translateX(0)}
+.ach-head{padding:20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.02);}
+.ach-title{font-size:12px;font-weight:950;letter-spacing:2px;color:var(--cyan)}
+.ach-close{background:none;border:none;color:var(--muted);font-size:20px;padding:0;transition:.2s}
+.ach-close:hover{color:white;transform:scale(1.1)}
+.ach-stats{padding:15px 20px;border-bottom:1px solid var(--line);display:flex;gap:15px;font-size:9px;color:var(--muted);font-weight:800}
+.ach-stats span{color:var(--gold);font-size:12px}
+.ach-list{flex:1;overflow-y:auto;padding:10px}
+.ach-item{display:flex;flex-direction:column;padding:12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);margin-bottom:6px;transition:.2s;}
+.ach-item.unlocked{border-color:rgba(255,209,108,.3);background:rgba(255,209,108,.05)}
+.ach-item.locked{opacity:.6}
+.ach-name{font-size:10px;font-weight:900;color:var(--text);margin-bottom:2px}
+.ach-item.unlocked .ach-name{color:var(--gold)}
+.ach-desc{font-size:8px;color:var(--muted);line-height:1.4}
+.ach-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);z-index:99;opacity:0;pointer-events:none;transition:.3s;}
+.ach-overlay.open{opacity:1;pointer-events:auto}
+
+/* Offline surprise box */
+.offline-box {
+position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+z-index: 2000; padding: 24px; border-radius: 16px;
+background: linear-gradient(135deg, #1a1c2c, #0f111a);
+border: 2px solid var(--gold); box-shadow: 0 20px 80px rgba(0,0,0,0.9);
+text-align: center; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.offline-box.show { opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto; }
+.offline-title { font-size: 14px; font-weight: 950; color: var(--gold); letter-spacing: 1px; margin-bottom: 8px; }
+.offline-sub { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+.offline-reward { font-size: 22px; font-weight: 1000; color: var(--cyan); margin-bottom: 20px; }
+.offline-btn {
+padding: 12px 32px; border: 0; border-radius: 10px;
+background: var(--gold); color: #080911; font-size: 12px; font-weight: 950;
+letter-spacing: 2px; transition: all 0.2s;
+}
+.offline-btn:hover { transform: scale(1.05); box-shadow: 0 0 30px var(--gold); }
+
+/* Victory screen */
+.victory-overlay {
+position: fixed; inset: 0; z-index: 3000;
+display: flex; flex-direction: column; align-items: center; justify-content: center;
+background: radial-gradient(circle, rgba(255,209,108,0.2), rgba(8,9,17,0.98));
+opacity: 0; pointer-events: none; transition: opacity 1s ease;
+}
+.victory-overlay.show { opacity: 1; pointer-events: auto; }
+.victory-overlay h1 {
+font-size: clamp(32px, 8vw, 64px); font-weight: 1000; letter-spacing: -2px;
+background: linear-gradient(135deg, var(--pink), var(--gold));
+-webkit-background-clip: text; -webkit-text-fill-color: transparent;
+margin-bottom: 16px; text-align: center;
+filter: drop-shadow(0 0 40px rgba(255,209,108,0.5));
+}
+.victory-overlay p { color: var(--muted); font-size: 14px; letter-spacing: 2px; margin-bottom: 40px; text-align: center; max-width: 500px; line-height: 1.6; }
+.victory-overlay button {
+padding: 16px 48px; border: 2px solid var(--gold); border-radius: 12px;
+background: transparent; color: var(--gold); font-size: 14px; font-weight: 950;
+letter-spacing: 4px; transition: all 0.3s ease;
+}
+.victory-overlay button:hover { background: rgba(255,209,108,.1); box-shadow: 0 0 40px rgba(255,209,108,.4); }
+
+dialog{width:min(440px,calc(100% - 30px));padding:0;border:1px solid #ff5b9d66;border-radius:16px;color:var(--text);background:#111320;box-shadow:0 25px 100px #000b; backdrop-filter: blur(10px); z-index: 500;}
+dialog::backdrop{background:#03040bd9;backdrop-filter:blur(5px)}
+#prestige-store-dialog { border: 1px solid transparent; background: linear-gradient(#111320, #111320) padding-box, linear-gradient(45deg, var(--cyan), var(--purple), var(--pink)) border-box; }
+
+.dialog-inner{padding:22px}
+.dialog-title{color:var(--pink);font-size:12px;font-weight:950;letter-spacing:2px}
+.dialog-copy{margin-top:10px;color:var(--muted);font-size:10px;line-height:1.65}
+.dialog-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}
+.dialog-stat{padding:10px;border:1px solid var(--line);border-radius:9px;background:#ffffff06}
+.dialog-stat small{display:block;color:var(--muted);font-size:7px;letter-spacing:1px}
+.dialog-stat b{display:block;margin-top:5px;color:var(--gold);font-size:13px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.dialog-actions button{padding:10px 13px;border:1px solid var(--line);border-radius:8px;background:#ffffff08;color:var(--text);font-size:9px;font-weight:900;letter-spacing:.7px;}
+.dialog-actions .confirm{border:0;background:var(--pink);color:white}
+.dialog-actions .confirm:disabled{opacity:.4;}
+
+@media(max-width:820px){
+.app.pushed{transform:none}
+.ach-panel{width:100%;max-width:340px}
+.ach-popup { top: 10px; right: 10px; width: calc(100% - 20px); max-width: 300px; }
+}
+@media(max-width:720px){
+.app{padding:15px 11px 38px}.layout{grid-template-columns:1fr}
+.hero{padding:18px 15px}.hero-bottom{align-items:stretch;flex-direction:column}
+.meta{grid-template-columns:1fr}
+.btn-plus{font-size:36px}
+.big-rect-btn{padding:18px 20px}
+}
+@media(max-width:430px){
+header{align-items:flex-start}.brand{padding-top:8px;font-size:10px;letter-spacing:2px}
+.status{display:none}.card{padding:12px}
+.upgrade{grid-template-columns:31px minmax(0,1fr) auto;gap:7px;padding:8px}
+.icon{width:30px;height:30px}.buy{min-width:78px}
+.btn-plus{font-size:30px}
+}
+@media(prefers-reduced-motion:reduce){
+*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div id="cursor-dot"></div>
+
+<div id="landing">
+<h1>SWIRL</h1>
+<p>IDLE LAB</p>
+<button id="enter-btn" type="button">TAP TO ENTER</button>
+</div>
+
+<canvas id="stars" aria-hidden="true"></canvas>
+<canvas id="shooting" aria-hidden="true"></canvas>
+<div class="aurora a"></div><div class="aurora b"></div>
+<div class="prestige-aura" id="prestige-aura"></div>
+
+<main class="app" id="app" style="opacity:0; transition: opacity 1s ease;">
+<header>
+<div class="brand">
+<svg viewBox="0 0 24 24" fill="none" stroke="url(#swirlGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<defs>
+<linearGradient id="swirlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="var(--pink)" />
+<stop offset="100%" stop-color="var(--gold)" />
+</linearGradient>
+</defs>
+<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+<path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+<path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+</svg>
+<span>SWIRL</span> / IDLE LAB
+</div>
+<div class="header-actions">
+<div class="status" id="save-status">SAVED LOCALLY</div>
+<button class="small-button prestige-btn-top" id="open-prestige-store" type="button">STORE</button>
+<button class="small-button ach-btn" id="open-ach" type="button">ACHIEVEMENTS</button>
+<button class="small-button" id="sound-toggle" type="button" aria-pressed="true">SOUND ON</button>
+<button class="small-button" id="reset" type="button">RESET</button>
+</div>
+</header>
+
+<section class="hero">
+<div class="hero-top">
+<div>
+<div class="label">FLUX COIN RESERVE</div>
+<div class="energy-line"><div id="flux">0</div><div class="unit">FLUX</div></div>
+</div>
+<div class="cash-box">
+<div class="label">IDLE CASH</div>
+<div id="cash">$0</div>
+<div class="rate-note">Automatic income: <strong id="cash-rate">$0/s</strong></div>
+</div>
+</div>
+<div class="hero-bottom">
+<div class="rates">
+<span>Flux <strong id="flux-rate">0/s</strong></span>
+<span>Cash <strong class="gold" id="cash-rate-hero">$0/s</strong></span>
+<span>Click <strong id="click-power">+1</strong></span>
+<span>Multiplier <strong class="gold" id="global-mult">x1.00</strong></span>
+</div>
+</div>
+<div class="next-goal-ticker" id="next-goal-ticker">
+<div class="label">NEXT GOAL</div>
+<strong id="next-goal-text">Generate 100 Flux</strong>
+</div>
+</section>
+
+<div class="click-zone" id="click-zone">
+<button class="big-rect-btn tier-0" id="core" type="button" aria-label="Generate Flux">
+<div class="click-ripple" id="click-ripple"></div>
+<span class="btn-plus" id="core-plus">+1</span>
+<span class="btn-label">TAP TO GENERATE FLUX</span>
+</button>
+</div>
+
+<section class="grand-goal">
+<div class="grand-goal-title">✦ GRAND GOAL — BUILD THE REALITY ENGINE</div>
+<div class="grand-goal-desc">The ultimate endgame project. Requires 1e30 Flux, 1e20 Cash, and 100 Warp Cores.</div>
+<div class="grand-goal-progress"><div id="grand-goal-progress"></div></div>
+<div class="grand-goal-bottom">
+<span id="grand-goal-status">0% COMPLETE</span>
+<span id="grand-goal-detail">1e30 FLUX · 1e20 CASH · 100 CORES</span>
+</div>
+</section>
+
+<section class="meta">
+<div class="panel daily" id="daily-card">
+<div class="daily-title" id="daily-title">✦ DAILY STREAK</div>
+<div class="daily-desc" id="daily-desc">Generate Flux today to keep your streak alive.</div>
+<div class="progress"><div id="daily-progress"></div></div>
+<div class="daily-bottom"><span id="daily-status">0 / 0 FLUX</span><span id="daily-streak">0 DAY STREAK</span></div>
+<div class="daily-timer" id="daily-timer">NEXT STREAK IN --:--:--</div>
+</div>
+<div class="panel prestige">
+<div class="prestige-title">REALITY WARP</div>
+<div class="prestige-desc">Reset your current run to gain Warp Cores. Each core permanently increases production by 8%. The Flux requirement rises after every warp.</div>
+<div class="prestige-core-count"><span id="warp-cores">0</span> WARP CORES</div>
+<button class="prestige-btn" id="prestige-btn" type="button">REALITY WARP</button>
+</div>
+</section>
+
+<section class="chapter-container">
+<div class="chapter-header">
+<div class="chapter-text" id="chapter-text">CHAPTER 1: FIRST SPARK</div>
+<div style="font-size:8px;color:var(--muted);">PROGRESS</div>
+</div>
+<div class="chapter-roadmap" id="chapter-roadmap"></div>
+</section>
+
+<div class="layout">
+<section class="card">
+<div class="card-head">
+<div class="card-title">UPGRADE STATION</div>
+<div class="card-note">GROW YOUR LAB</div>
+</div>
+<div class="tabs" id="tabs" role="tablist" aria-label="Filter upgrades">
+<button class="tab active" data-filter="all" type="button" role="tab" aria-selected="true">ALL</button>
+<button class="tab" data-filter="flux" type="button" role="tab" aria-selected="false">FLUX</button>
+<button class="tab" data-filter="cash" type="button" role="tab" aria-selected="false">CASH</button>
+<button class="tab" data-filter="boost" type="button" role="tab" aria-selected="false">BOOSTS</button>
+</div>
+
+<div class="buy-tabs" id="buy-tabs">
+<button class="buy-tab active" data-buy="1" type="button">x1</button>
+<button class="buy-tab" data-buy="10" type="button">x10</button>
+<button class="buy-tab" data-buy="100" type="button">x100</button>
+<button class="buy-tab" data-buy="max" type="button">MAX</button>
+</div>
+
+<div class="upgrades" id="upgrades"></div>
+</section>
+
+<aside class="side">
+<section class="card">
+<div class="card-head"><div class="card-title">LAB OVERVIEW</div><div class="card-note">LIVE</div></div>
+<div class="stats">
+<div class="stat"><small>TOTAL CLICKS</small><b id="clicks">0</b></div>
+<div class="stat"><small>FLUX SPENT</small><b id="spent-flux">0</b></div>
+<div class="stat"><small>CASH SPENT</small><b id="spent-cash">$0</b></div>
+<div class="stat"><small>WARP MULT</small><b id="warp-mult">x1.00</b></div>
+</div>
+</section>
+<section class="card">
+<div class="card-head"><div class="card-title">RECENT ACTIVITY</div><div class="card-note">LAB LOG</div></div>
+<div class="log" id="log"></div>
+</section>
+</aside>
+</div>
+<footer>YOUR PROGRESS SAVES IN THIS BROWSER · WATCH FOR GOLDEN FLUX</footer>
+</main>
+
+<div class="ach-popup" id="ach-popup">
+<div class="ach-popup-icon">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+</div>
+<div class="ach-popup-text">
+<div class="ach-popup-title">ACHIEVEMENT UNLOCKED</div>
+<div class="ach-popup-name" id="ach-popup-name">First Tap</div>
+</div>
+</div>
+
+<div class="ach-overlay" id="ach-overlay"></div>
+<aside class="ach-panel" id="ach-panel" aria-label="Achievements">
+<div class="ach-head">
+<div class="ach-title">ACHIEVEMENTS</div>
+<button class="ach-close" id="close-ach" type="button">✕</button>
+</div>
+<div class="ach-stats">
+<div>UNLOCKED: <span id="ach-count">0</span> / 400</div>
+<div>COMPLETION: <span id="ach-percent">0%</span></div>
+</div>
+<div class="ach-list" id="ach-list"></div>
+</aside>
+
+<dialog id="prestige-store-dialog" aria-labelledby="store-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="store-title">PRESTIGE STORE</div>
+<div class="dialog-copy">Spend your Warp Cores on permanent upgrades that persist through Reality Warps!</div>
+<div style="margin-top: 15px;" id="store-items"></div>
+<div class="dialog-actions">
+<button id="close-store" type="button">CLOSE</button>
+</div>
+</div>
+</dialog>
+
+<dialog id="prestige-dialog" aria-labelledby="dialog-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="dialog-title">CONFIRM REALITY WARP</div>
+<div class="dialog-copy">This resets your current Flux, Cash, and upgrade levels. Your Warp Cores and lifetime progress remain. Any active orb effects or click combos will be cleared.</div>
+<div class="dialog-summary">
+<div class="dialog-stat"><small>FLUX COST</small><b id="dialog-cost">0</b></div>
+<div class="dialog-stat"><small>CORES TO GAIN</small><b id="dialog-gain">0</b></div>
+</div>
+<div class="dialog-actions">
+<button id="cancel-prestige" type="button">CANCEL</button>
+<button class="confirm" id="confirm-prestige" type="button">WARP REALITY</button>
+</div>
+</div>
+</dialog>
+
+<dialog id="reset-dialog" aria-labelledby="reset-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="reset-title" style="color: var(--pink);">RESET LAB?</div>
+<div class="dialog-copy">This will permanently delete all your progress — Flux, Cash, upgrades, Warp Cores, achievements, and store purchases. This cannot be undone.</div>
+<div class="dialog-actions">
+<button id="cancel-reset" type="button">CANCEL</button>
+<button class="confirm" id="confirm-reset" type="button" style="background: var(--pink);">RESET EVERYTHING</button>
+</div>
+</div>
+</dialog>
+
+<div id="golden-container">
+<div id="golden" aria-label="Golden Flux" title="Click for a boost">
+<span class="golden-label" id="golden-label"></span>
+</div>
+</div>
+
+<div class="offline-box" id="offline-box">
+<div class="offline-title">WELCOME BACK</div>
+<div class="offline-sub" id="offline-sub">You were away for 0 minutes</div>
+<div class="offline-reward" id="offline-reward">+0 Flux</div>
+<button class="offline-btn" id="offline-claim" type="button">CLAIM & DOUBLE</button>
+</div>
+
+<div class="victory-overlay" id="victory-overlay">
+<h1>REALITY ENGINE ONLINE</h1>
+<p>You've built the Reality Engine and conquered the lab. Your friends will be impressed. Keep playing for achievements, or start fresh for a new challenge.</p>
+<button id="victory-close" type="button">CONTINUE PLAYING</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="clock" id="clock">00:00:00</div>
+
+<script>
+"use strict";
+
+const SAVE_KEY="swirl_idle_ultimate_v18";
+const $=id=>document.getElementById(id);
+
+/* =============================================================
+LANDING PAGE
+============================================================= */
+$("enter-btn").addEventListener("click", () => {
+$("landing").classList.add("hidden");
+setTimeout(() => {
+$("app").style.opacity = "1";
+$("app").style.pointerEvents = "auto";
+}, 100);
+});
+
+/* =============================================================
+CUSTOM CURSOR
+============================================================= */
+const cursorDot = $("cursor-dot");
+document.addEventListener("mousemove", e => {
+cursorDot.style.left = e.clientX + "px";
+cursorDot.style.top = e.clientY + "px";
+}, true);
+
+function updateDialogCursorState() {
+const anyOpen = !!document.querySelector("dialog[open]");
+document.body.classList.toggle("dialog-open", anyOpen);
+cursorDot.style.zIndex = anyOpen ? "2147483647" : "99999";
+}
+const dialogObserver = new MutationObserver(updateDialogCursorState);
+document.querySelectorAll("dialog").forEach(d => {
+dialogObserver.observe(d, { attributes: true, attributeFilter: ["open"] });
+});
+updateDialogCursorState();
+
+/* =============================================================
+CLOCK
+============================================================= */
+function updateClock() {
+const now = new Date();
+const h = String(now.getHours()).padStart(2, '0');
+const m = String(now.getMinutes()).padStart(2, '0');
+const s = String(now.getSeconds()).padStart(2, '0');
+$("clock").textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* =============================================================
+UPGRADES — REBALANCED (slower start, more towers, less OP)
+============================================================= */
+const upgrades=[
+{id:"tap",icon:"spark",name:"Flux Tap",category:"flux",currency:"flux",desc:"Improve Flux gained per click.",base:15,growth:1.22,type:"click",power:0.5},
+{id:"drone",icon:"drone",name:"Micro Drone",category:"flux",currency:"flux",desc:"A steady trickle of Flux.",base:50,growth:1.22,type:"flux",power:0.15},
+{id:"printer",icon:"printer",name:"Cash Printer",category:"cash",currency:"flux",desc:"Your first automatic cash source.",base:90,growth:1.23,type:"cash",power:0.2},
+{id:"coil",icon:"coil",name:"Quantum Coil",category:"flux",currency:"flux",desc:"A more powerful Flux generator.",base:280,growth:1.24,type:"flux",power:0.9},
+{id:"shop",icon:"shop",name:"Neon Shop",category:"cash",currency:"cash",desc:"A small shop earns cash over time.",base:45,growth:1.24,type:"cash",power:0.75},
+{id:"analyst",icon:"boost",name:"Market Analyst",category:"boost",currency:"cash",desc:"Boost all automatic production.",base:180,growth:1.27,type:"multiplier",power:0.03},
+{id:"reactor",icon:"reactor",name:"Neon Reactor",category:"flux",currency:"flux",desc:"Reliable high-output Flux.",base:1500,growth:1.25,type:"flux",power:5},
+{id:"vault",icon:"vault",name:"Idle Vault",category:"cash",currency:"cash",desc:"A secure vault produces passive income.",base:420,growth:1.26,type:"cash",power:3},
+{id:"tapcore",icon:"tap",name:"Tap Core",category:"boost",currency:"cash",desc:"Adds power to every click.",base:800,growth:1.27,type:"click",power:1},
+{id:"prism",icon:"prism",name:"Prism Array",category:"flux",currency:"flux",desc:"A bright array streams Flux.",base:9500,growth:1.26,type:"flux",power:30},
+{id:"exchange",icon:"exchange",name:"Flux Exchange",category:"cash",currency:"cash",desc:"A busier exchange improves cash flow.",base:2800,growth:1.27,type:"cash",power:14},
+{id:"syndicate",icon:"company",name:"Neon Syndicate",category:"boost",currency:"cash",desc:"Improves automatic production.",base:8000,growth:1.29,type:"multiplier",power:0.05},
+{id:"singularity",icon:"singularity",name:"Mini Singularity",category:"flux",currency:"flux",desc:"A rare anomaly produces Flux.",base:60000,growth:1.27,type:"flux",power:180},
+{id:"bank",icon:"bank",name:"Quantum Bank",category:"cash",currency:"cash",desc:"A high-tier bank with stronger income.",base:20000,growth:1.28,type:"cash",power:95},
+{id:"starforge",icon:"star",name:"Star Forge",category:"flux",currency:"flux",desc:"Creates Flux from stellar energy.",base:400000,growth:1.28,type:"flux",power:1100},
+{id:"megacorp",icon:"company",name:"Swirl Megacorp",category:"cash",currency:"cash",desc:"A larger business network earns more.",base:140000,growth:1.29,type:"cash",power:600},
+{id:"overdrive",icon:"drive",name:"Overdrive Engine",category:"boost",currency:"cash",desc:"A substantial automatic-income boost.",base:480000,growth:1.31,type:"multiplier",power:0.08},
+{id:"voidcore",icon:"void",name:"Void Core",category:"flux",currency:"flux",desc:"Rare technology with enormous output.",base:2200000,growth:1.29,type:"flux",power:7500},
+{id:"moonbank",icon:"moon",name:"Lunar Reserve",category:"cash",currency:"cash",desc:"A distant reserve provides major income.",base:1200000,growth:1.30,type:"cash",power:4500},
+{id:"pulsar",icon:"pulsar",name:"Pulsar Array",category:"flux",currency:"flux",desc:"A pulsar spins out dense Flux streams.",base:14000000,growth:1.30,type:"flux",power:48000},
+{id:"deepvault",icon:"vault",name:"Deep-Space Vault",category:"cash",currency:"cash",desc:"A vault network serving outer systems.",base:8000000,growth:1.31,type:"cash",power:28000},
+{id:"chronotap",icon:"tap",name:"Chrono Tap",category:"boost",currency:"cash",desc:"Bends each click through faster time.",base:18000000,growth:1.31,type:"click",power:8},
+{id:"gravitywell",icon:"gravity",name:"Gravity Well",category:"flux",currency:"flux",desc:"Compresses space into Flux.",base:80000000,growth:1.31,type:"flux",power:300000},
+{id:"darkmatter",icon:"darkmatter",name:"Dark Matter Mint",category:"cash",currency:"cash",desc:"Turns exotic matter into passive income.",base:50000000,growth:1.32,type:"cash",power:175000},
+{id:"phaseengine",icon:"boost",name:"Phase Engine",category:"boost",currency:"cash",desc:"Raises automatic production by 10%.",base:120000000,growth:1.33,type:"multiplier",power:0.10},
+{id:"galaxyforge",icon:"galaxy",name:"Galaxy Forge",category:"flux",currency:"flux",desc:"Forges Flux on a galactic scale.",base:650000000,growth:1.32,type:"flux",power:2400000},
+{id:"starseed",icon:"starseed",name:"Starseed Bank",category:"cash",currency:"cash",desc:"A growing reserve seeded among the stars.",base:400000000,growth:1.33,type:"cash",power:1400000},
+{id:"novaheart",icon:"nova",name:"Nova Heart",category:"flux",currency:"flux",desc:"A contained nova fuels your lab.",base:5000000000,growth:1.33,type:"flux",power:19000000},
+{id:"realityclick",icon:"tap",name:"Reality Clicker",category:"boost",currency:"cash",desc:"Adds immense power to every click.",base:3500000000,growth:1.34,type:"click",power:90},
+{id:"cosmicexchange",icon:"cosmic",name:"Cosmic Exchange",category:"cash",currency:"cash",desc:"Trades resources across star systems.",base:3000000000,growth:1.34,type:"cash",power:10000000},
+{id:"riftreactor",icon:"rift",name:"Rift Reactor",category:"flux",currency:"flux",desc:"Draws Flux directly from a distant rift.",base:45000000000,growth:1.34,type:"flux",power:160000000},
+{id:"antimatterbank",icon:"antimatter",name:"Antimatter Bank",category:"cash",currency:"cash",desc:"Stores and compounds antimatter wealth.",base:30000000000,growth:1.35,type:"cash",power:90000000},
+{id:"riftmaster",icon:"boost",name:"Rift Mastery",category:"boost",currency:"cash",desc:"Raises automatic production by 12%.",base:90000000000,growth:1.36,type:"multiplier",power:0.12},
+{id:"dimensionloom",icon:"dimension",name:"Dimension Loom",category:"flux",currency:"flux",desc:"Weaves entire dimensions into Flux.",base:350000000000,growth:1.35,type:"flux",power:1250000000},
+{id:"timelessmint",icon:"timeless",name:"Timeless Mint",category:"cash",currency:"cash",desc:"Collects interest from future timelines.",base:250000000000,growth:1.36,type:"cash",power:800000000},
+{id:"universecore",icon:"universe",name:"Universe Core",category:"flux",currency:"flux",desc:"A universe-scale source of Flux.",base:4500000000000,growth:1.36,type:"flux",power:16000000000},
+{id:"omnitap",icon:"tap",name:"Omni Tap",category:"boost",currency:"cash",desc:"Channels timelines into every click.",base:3500000000000,growth:1.37,type:"click",power:600},
+{id:"omnibank",icon:"omni",name:"Omni Bank",category:"cash",currency:"cash",desc:"A reserve spanning countless realities.",base:3500000000000,growth:1.37,type:"cash",power:11000000000},
+{id:"infinitydrive",icon:"drive",name:"Infinity Drive",category:"boost",currency:"cash",desc:"Raises automatic production by 15%.",base:13000000000000,growth:1.39,type:"multiplier",power:0.15},
+{id:"quantumtap",icon:"tap",name:"Quantum Tap",category:"boost",currency:"cash",desc:"Adds another layer of click power.",base:55000000000000,growth:1.39,type:"click",power:3200},
+{id:"quasar",icon:"quasar",name:"Quasar Harvester",category:"flux",currency:"flux",desc:"Harvests the heart of a quasar.",base:60000000000000,growth:1.37,type:"flux",power:225000000000},
+{id:"quasarbank",icon:"reserve",name:"Quasar Bank",category:"cash",currency:"cash",desc:"Banks wealth from a quasar system.",base:50000000000000,growth:1.38,type:"cash",power:150000000000},
+{id:"starweaver",icon:"loom",name:"Star Weaver",category:"flux",currency:"flux",desc:"Connects stars into a Flux network.",base:800000000000000,growth:1.38,type:"flux",power:3000000000000},
+{id:"stellartrust",icon:"reserve",name:"Stellar Trust",category:"cash",currency:"cash",desc:"A trust fund spanning star clusters.",base:700000000000000,growth:1.39,type:"cash",power:2100000000000},
+{id:"hyperdrive",icon:"drive",name:"Hyperdrive",category:"boost",currency:"cash",desc:"Raises automatic production by 18%.",base:1800000000000000,growth:1.41,type:"multiplier",power:0.18},
+{id:"nebulaengine",icon:"nebula",name:"Nebula Engine",category:"flux",currency:"flux",desc:"Turns nebulae into pure Flux.",base:11000000000000000,growth:1.39,type:"flux",power:40000000000000},
+{id:"nebulareserve",icon:"reserve",name:"Nebula Reserve",category:"cash",currency:"cash",desc:"A reserve built from nebula trade.",base:9000000000000000,growth:1.40,type:"cash",power:27500000000000},
+{id:"timestap",icon:"tap",name:"Time Tap",category:"boost",currency:"cash",desc:"Draws more power into each click.",base:27000000000000000,growth:1.41,type:"click",power:40000},
+{id:"dimensionpump",icon:"pump",name:"Dimension Pump",category:"flux",currency:"flux",desc:"Pumps Flux between dimensions.",base:140000000000000000,growth:1.40,type:"flux",power:500000000000000},
+{id:"dimensionbank",icon:"bank",name:"Dimension Bank",category:"cash",currency:"cash",desc:"Moves capital between dimensions.",base:120000000000000000,growth:1.41,type:"cash",power:350000000000000},
+{id:"omniscience",icon:"boost",name:"Omniscience",category:"boost",currency:"cash",desc:"Raises automatic production by 20%.",base:450000000000000000,growth:1.43,type:"multiplier",power:0.20},
+{id:"cosmicloom",icon:"loom",name:"Cosmic Loom",category:"flux",currency:"flux",desc:"Weaves Flux from cosmic background energy.",base:1800000000000000000,growth:1.41,type:"flux",power:7000000000000000},
+{id:"cosmicreserve",icon:"reserve",name:"Cosmic Reserve",category:"cash",currency:"cash",desc:"A reserve backed by cosmic assets.",base:1600000000000000000,growth:1.42,type:"cash",power:4750000000000000},
+{id:"infinitytap",icon:"infinity",name:"Infinity Tap",category:"boost",currency:"cash",desc:"Magnifies every click across realities.",base:5500000000000000000,growth:1.43,type:"click",power:600000000},
+{id:"infinityforge",icon:"infinity",name:"Infinity Forge",category:"flux",currency:"flux",desc:"Forges Flux without a known limit.",base:28000000000000000000,growth:1.42,type:"flux",power:100000000000000000},
+{id:"infinitybank",icon:"infinity",name:"Infinity Bank",category:"cash",currency:"cash",desc:"An ever-growing store of idle wealth.",base:23000000000000000000,growth:1.43,type:"cash",power:70000000000000000},
+{id:"transcendence",icon:"boost",name:"Transcendence",category:"boost",currency:"cash",desc:"Raises automatic production by 25%.",base:90000000000000000000,growth:1.45,type:"multiplier",power:0.25}
+];
+
+/* =============================================================
+400 ACHIEVEMENTS
+============================================================= */
+const achievementsData = [];
+const addAch = (id, name, desc, cond) => achievementsData.push({id, name, desc, cond});
+
+// Clicks
+for (let i = 1; i <= 20; i++) { const threshold = Math.floor(Math.pow(2, i) * 50); addAch(`click${i}`, `Clicker ${i}`, `Click the core ${threshold.toLocaleString()} times.`, s => s.clicks >= threshold); }
+// Fast clicks
+for (let i = 1; i <= 10; i++) { const threshold = 5 + i * 5; addAch(`fast${i}`, `Speed ${i}`, `Click ${threshold} times in 1 second.`, s => s.fastClicks >= threshold); }
+// Erratic
+for (let i = 1; i <= 10; i++) { const threshold = i * 50; addAch(`erratic${i}`, `Chaos ${i}`, `Click erratically ${threshold} times.`, s => s.erraticClicks >= threshold); }
+// Golden
+for (let i = 1; i <= 20; i++) { const threshold = i * 2; addAch(`golden${i}`, `Golden ${i}`, `Click ${threshold} Golden Flux orbs.`, s => s.goldenClicks >= threshold); }
+// Total Flux
+const fluxThresholds = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9, 5e9, 1e10, 5e10, 1e11, 5e11, 1e12, 5e12, 1e13, 5e13, 1e14, 5e14, 1e15, 5e15, 1e16, 5e16, 1e17, 5e17];
+fluxThresholds.forEach((val, i) => addAch(`flux${i+1}`, `Flux Collector ${i+1}`, `Accumulate ${fmtShort(val)} Flux.`, s => s.totalFlux >= val));
+// Total Cash
+const cashThresholds = [1e2, 5e2, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9, 5e9, 1e10, 5e10, 1e11, 5e11, 1e12, 5e12, 1e13, 5e13, 1e14, 5e14, 1e15, 5e15, 1e16, 5e16];
+cashThresholds.forEach((val, i) => addAch(`cash${i+1}`, `Wealthy ${i+1}`, `Accumulate $${fmtShort(val)} Cash.`, s => s.totalCash >= val));
+// Upgrades bought
+for (let i = 1; i <= 20; i++) { const threshold = Math.floor(Math.pow(2, i)); addAch(`upb${i}`, `Upgrade Addict ${i}`, `Purchase ${threshold.toLocaleString()} total upgrades.`, s => Object.values(s.levels).reduce((a,b)=>a+b,0) >= threshold); }
+// Max level
+for (let i = 1; i <= 15; i++) { const threshold = i * 10; addAch(`maxlvl${i}`, `Maxed ${i}`, `Get any single upgrade to Level ${threshold}.`, s => Math.max(0, ...Object.values(s.levels)) >= threshold); }
+// Flux/s
+const fpsThresholds = [10, 50, 100, 500, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8];
+fpsThresholds.forEach((val, i) => addAch(`fps${i+1}`, `Flux Flow ${i+1}`, `Reach ${fmtShort(val)} Flux per second.`, s => fluxRate() >= val));
+// Cash/s
+const cpsThresholds = [10, 50, 100, 500, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8];
+cpsThresholds.forEach((val, i) => addAch(`cps${i+1}`, `Cash Flow ${i+1}`, `Reach $${fmtShort(val)} Cash per second.`, s => cashRate() >= val));
+// Click power
+const clickThresholds = [1, 5, 10, 25, 50, 100, 250, 500, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6];
+clickThresholds.forEach((val, i) => addAch(`clickp${i+1}`, `Click Power ${i+1}`, `Reach ${fmtShort(val)} Flux per click.`, s => clickPower() >= val));
+// Prestiges
+for (let i = 1; i <= 20; i++) { const threshold = i * 5; addAch(`prestige${i}`, `Reality Warp ${i}`, `Prestige ${threshold} times.`, s => s.prestiges >= threshold); }
+// Warp cores
+for (let i = 1; i <= 15; i++) { const threshold = i * 10; addAch(`cores${i}`, `Core Collector ${i}`, `Own ${threshold} Warp Cores.`, s => s.warpCores >= threshold); }
+// Global multiplier
+const multThresholds = [1.5, 2, 3, 4, 5, 7, 10, 15, 20, 30, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 1500];
+multThresholds.forEach((val, i) => addAch(`mult${i+1}`, `Multiplier ${i+1}`, `Reach a global multiplier of x${val.toFixed(2)}.`, s => prodMult() >= val));
+// Flux spent
+const fluxSpentThresholds = [1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9, 5e9, 1e10];
+fluxSpentThresholds.forEach((val, i) => addAch(`fspent${i+1}`, `Flux Spender ${i+1}`, `Spend ${fmtShort(val)} Flux.`, s => s.spentFlux >= val));
+// Cash spent
+const cashSpentThresholds = [1e2, 5e2, 1e3, 5e3, 1e4, 5e4, 1e5, 5e5, 1e6, 5e6, 1e7, 5e7, 1e8, 5e8, 1e9];
+cashSpentThresholds.forEach((val, i) => addAch(`cspent${i+1}`, `Cash Spender ${i+1}`, `Spend $${fmtShort(val)} Cash.`, s => s.spentCash >= val));
+
+// Misc special
+addAch("misc1", "First Tap", "Click the core 1 time.", s => s.clicks >= 1);
+addAch("misc2", "Warming Up", "Click the core 50 times.", s => s.clicks >= 50);
+addAch("misc3", "Clicker Novice", "Click the core 500 times.", s => s.clicks >= 500);
+addAch("misc4", "Daily Routine", "Complete a Daily Goal.", s => s.lastCompletedDay !== "");
+addAch("misc5", "Streak 1", "Achieve a 1-day streak.", s => s.streak >= 1);
+addAch("misc6", "Streak 3", "Achieve a 3-day streak.", s => s.streak >= 3);
+addAch("misc7", "Streak 7", "Achieve a 7-day streak.", s => s.streak >= 7);
+addAch("misc8", "Streak 30", "Achieve a 30-day streak.", s => s.streak >= 30);
+addAch("misc9", "Idle Master", "Leave the game idle for 1 hour (Offline Earnings).", s => s.totalIdleTime >= 3600);
+addAch("misc10", "Lab Assistant", "Read the Recent Activity log.", s => s.hasReadLog);
+addAch("misc11", "Curious", "Open the Achievements panel.", s => s.hasOpenedAch);
+addAch("misc12", "Sound Check", "Toggle the sound off and on.", s => s.hasToggledSound);
+addAch("misc13", "Diversified Portfolio", "Own at least 1 of every upgrade type.", s => new Set(upgrades.filter(u => (s.levels[u.id]||0) > 0).map(u=>u.type)).size >= 3);
+addAch("misc14", "Flux Factory", "Own 10 Flux-producing upgrades.", s => upgrades.filter(u=>u.type==="flux").filter(u => (s.levels[u.id]||0) > 0).length >= 10);
+addAch("misc15", "Cash Cow", "Own 10 Cash-producing upgrades.", s => upgrades.filter(u=>u.type==="cash").filter(u => (s.levels[u.id]||0) > 0).length >= 10);
+addAch("misc16", "Booster", "Own 10 Boost upgrades.", s => upgrades.filter(u=>u.type==="multiplier"||u.type==="click").filter(u => (s.levels[u.id]||0) > 0).length >= 10);
+addAch("misc17", "Multiplying", "Reach a global multiplier of x5.00.", s => prodMult() >= 5);
+addAch("misc18", "Supercharged", "Reach a global multiplier of x10.00.", s => prodMult() >= 10);
+addAch("misc19", "Overwhelming", "Reach a global multiplier of x25.00.", s => prodMult() >= 25);
+addAch("misc20", "Multiverse", "Reach a global multiplier of x100.00.", s => prodMult() >= 100);
+addAch("misc21", "Billionaire", "Reach $1 Billion total cash earned.", s => s.totalCash >= 1e9);
+addAch("misc22", "Trillionaire", "Reach $1 Trillion total cash earned.", s => s.totalCash >= 1e12);
+addAch("misc23", "Golden Touch", "Click 1 Golden Flux orb.", s => s.goldenClicks >= 1);
+addAch("misc24", "Lucky Streak", "Click 5 Golden Flux orbs.", s => s.goldenClicks >= 5);
+addAch("misc25", "Golden God", "Click 25 Golden Flux orbs.", s => s.goldenClicks >= 25);
+
+// NEW 100 UNIQUE
+addAch("u1", "Logo Whisperer", "Click the SWIRL logo.", s => s.logoClicks >= 1);
+addAch("u2", "Logo Devotee", "Click the SWIRL logo 10 times.", s => s.logoClicks >= 10);
+addAch("u3", "Logo Obsessed", "Click the SWIRL logo 50 times.", s => s.logoClicks >= 50);
+addAch("u4", "Logo Worshipper", "Click the SWIRL logo 100 times.", s => s.logoClicks >= 100);
+addAch("u5", "Tab Switcher", "Switch between upgrade tabs 10 times.", s => s.tabSwitches >= 10);
+addAch("u6", "Tab Hopper", "Switch between upgrade tabs 50 times.", s => s.tabSwitches >= 50);
+addAch("u7", "Bulk Buyer", "Change the buy multiplier 5 times.", s => s.buyModeSwitches >= 5);
+addAch("u8", "Bulk Master", "Change the buy multiplier 25 times.", s => s.buyModeSwitches >= 25);
+addAch("u9", "Sound Off", "Mute the game.", s => s.hasMuted);
+addAch("u10", "Silence is Golden", "Play muted for 5 minutes.", s => s.mutedTime >= 300);
+addAch("u11", "Shopaholic", "Open the Prestige Store 5 times.", s => s.storeOpens >= 5);
+addAch("u12", "Window Shopper", "Open the Prestige Store 25 times.", s => s.storeOpens >= 25);
+addAch("u13", "Full Cart", "Buy 5 items from the Prestige Store.", s => Object.keys(s.storePurchases).length >= 5);
+addAch("u14", "Store Regular", "Buy 10 items from the Prestige Store.", s => Object.keys(s.storePurchases).length >= 10);
+addAch("u15", "Big Spender", "Buy the Warp Core Bank from the store.", s => !!s.storePurchases["warpcore"]);
+addAch("u16", "Golden Attraction", "Buy the Golden Attraction upgrade.", s => !!s.storePurchases["golden"]);
+addAch("u17", "Automatic", "Buy the Auto-Clicker.", s => !!s.storePurchases["auto"]);
+addAch("u18", "Automation Nation", "Buy both Auto-Clickers.", s => !!s.storePurchases["auto"] && !!s.storePurchases["auto2"]);
+addAch("u19", "Head Start", "Buy the Head Start upgrade.", s => !!s.storePurchases["headstart"]);
+addAch("u20", "Advanced Start", "Buy the Advanced Head Start upgrade.", s => !!s.storePurchases["start2"]);
+addAch("u21", "Amplified", "Buy the Click Amplifier.", s => !!s.storePurchases["clickboost"]);
+addAch("u22", "Catalyst", "Buy both the Cash and Flux Catalysts.", s => !!s.storePurchases["cashboost"] && !!s.storePurchases["fluxboost"]);
+addAch("u23", "Overdrive", "Buy both Overdrive store upgrades.", s => !!s.storePurchases["click2"] && !!s.storePurchases["cash2"]);
+addAch("u24", "Golden Magnet", "Buy the Golden Magnet upgrade.", s => !!s.storePurchases["golden2"]);
+addAch("u25", "Offline Enjoyer", "Buy the Offline Booster.", s => !!s.storePurchases["offline"]);
+addAch("u26", "Core Multiplier", "Buy the Core Multiplier.", s => !!s.storePurchases["multiplier"]);
+addAch("u27", "Prestige Panel", "Open the prestige confirmation dialog.", s => s.prestigeDialogs >= 1);
+addAch("u28", "Cancel Culture", "Cancel a prestige dialog.", s => s.prestigeCancels >= 1);
+addAch("u29", "Never Mind", "Cancel 5 prestige dialogs.", s => s.prestigeCancels >= 5);
+addAch("u30", "Reset Button", "Open the reset dialog.", s => s.resetDialogs >= 1);
+addAch("u31", "Danger Zone", "Cancel a reset.", s => s.resetCancels >= 1);
+addAch("u32", "Lucky Charm", "Click a golden orb within 2 seconds of it spawning.", s => s.fastGoldenClick);
+addAch("u33", "Quick Draw", "Click 3 golden orbs in one session.", s => s.goldenClicks >= 3);
+addAch("u34", "Frenzy Fan", "Trigger frenzy 10 times.", s => s.frenzyActivations >= 10);
+addAch("u35", "Frenzy Addict", "Trigger frenzy 25 times.", s => s.frenzyActivations >= 25);
+addAch("u36", "Frenzy Master", "Trigger frenzy 50 times.", s => s.frenzyActivations >= 50);
+addAch("u37", "Click Storm", "Click 20 times in one second.", s => s.fastClicks >= 20);
+addAch("u38", "Click Typhoon", "Click 30 times in one second.", s => s.fastClicks >= 30);
+addAch("u39", "Click Hurricane", "Click 40 times in one second.", s => s.fastClicks >= 40);
+addAch("u40", "Every Tab", "Buy an upgrade from every category.", s => { const cats = new Set(upgrades.filter(u => (s.levels[u.id]||0) > 0).map(u=>u.category)); return cats.size >= 3; });
+addAch("u41", "First Max", "Max out any single upgrade completely to level 100.", s => Math.max(0, ...Object.values(s.levels)) >= 100);
+addAch("u42", "Hundred Club", "Own 100 total upgrades.", s => Object.values(s.levels).reduce((a,b)=>a+b,0) >= 100);
+addAch("u43", "Thousand Club", "Own 1000 total upgrades.", s => Object.values(s.levels).reduce((a,b)=>a+b,0) >= 1000);
+addAch("u44", "Ten Thousand Club", "Own 10,000 total upgrades.", s => Object.values(s.levels).reduce((a,b)=>a+b,0) >= 10000);
+addAch("u45", "Cash Hoarder", "Have $1M cash in reserve.", s => s.cash >= 1e6);
+addAch("u46", "Flux Hoarder", "Have 1M flux in reserve.", s => s.flux >= 1e6);
+addAch("u47", "Big Banker", "Have $1B cash in reserve.", s => s.cash >= 1e9);
+addAch("u48", "Flux Billionaire", "Have 1B flux in reserve.", s => s.flux >= 1e9);
+addAch("u49", "First Store Item", "Buy your first item from the Prestige Store.", s => Object.keys(s.storePurchases).length >= 1);
+addAch("u50", "Every Store Item", "Buy every item in the Prestige Store.", s => Object.keys(s.storePurchases).length >= storeItems.length);
+addAch("u51", "Double Digits", "Own 10 Warp Cores.", s => s.warpCores >= 10);
+addAch("u52", "Triple Cores", "Own 30 Warp Cores.", s => s.warpCores >= 30);
+addAch("u53", "Core Century", "Own 100 Warp Cores.", s => s.warpCores >= 100);
+addAch("u54", "Warp 5", "Prestige 5 times.", s => s.prestiges >= 5);
+addAch("u55", "Warp 10", "Prestige 10 times.", s => s.prestiges >= 10);
+addAch("u56", "Warp 25", "Prestige 25 times.", s => s.prestiges >= 25);
+addAch("u57", "Warp 50", "Prestige 50 times.", s => s.prestiges >= 50);
+addAch("u58", "Warp 100", "Prestige 100 times.", s => s.prestiges >= 100);
+addAch("u59", "First Milestone", "Reach the first Flux chapter (10K).", s => s.totalFlux >= 1e4);
+addAch("u60", "Chapter Hunter", "Reach 10 Flux chapters.", s => chapters.filter(c => s.totalFlux >= c.req).length >= 10);
+addAch("u61", "Chapter Master", "Reach 25 Flux chapters.", s => chapters.filter(c => s.totalFlux >= c.req).length >= 25);
+addAch("u62", "Chapter Legend", "Reach 40 Flux chapters.", s => chapters.filter(c => s.totalFlux >= c.req).length >= 40);
+addAch("u63", "All Chapters", "Reach every Flux chapter.", s => chapters.filter(c => s.totalFlux >= c.req).length >= chapters.length);
+addAch("u64", "Diverse Clicker", "Get every click-type upgrade to level 5.", s => upgrades.filter(u => u.type === "click" && (s.levels[u.id]||0) >= 5).length >= upgrades.filter(u => u.type === "click").length);
+addAch("u65", "Multiplier King", "Get every multiplier upgrade to level 5.", s => upgrades.filter(u => u.type === "multiplier" && (s.levels[u.id]||0) >= 5).length >= upgrades.filter(u => u.type === "multiplier").length);
+addAch("u66", "Flux King", "Get every flux upgrade to level 10.", s => upgrades.filter(u => u.type === "flux" && (s.levels[u.id]||0) >= 10).length >= upgrades.filter(u => u.type === "flux").length);
+addAch("u67", "Cash King", "Get every cash upgrade to level 10.", s => upgrades.filter(u => u.type === "cash" && (s.levels[u.id]||0) >= 10).length >= upgrades.filter(u => u.type === "cash").length);
+addAch("u68", "Max Everything", "Get every upgrade to level 20.", s => upgrades.every(u => (s.levels[u.id]||0) >= 20));
+addAch("u69", "True Max", "Get every upgrade to level 50.", s => upgrades.every(u => (s.levels[u.id]||0) >= 50));
+addAch("u70", "Ultimate Max", "Get every upgrade to level 100.", s => upgrades.every(u => (s.levels[u.id]||0) >= 100));
+addAch("u71", "Max Buy Once", "Use the MAX buy multiplier once.", s => s.maxBuys >= 1);
+addAch("u72", "Max Buy Master", "Use the MAX buy multiplier 50 times.", s => s.maxBuys >= 50);
+addAch("u73", "Big Buy", "Buy 100 upgrades in one click.", s => s.biggestSinglePurchase >= 100);
+addAch("u74", "Massive Buy", "Buy 1000 upgrades in one click.", s => s.biggestSinglePurchase >= 1000);
+addAch("u75", "One Purchase", "Buy 10 upgrades in one click.", s => s.biggestSinglePurchase >= 10);
+addAch("u76", "Cheap Skate", "Buy an upgrade while having less than 100 Flux.", s => s.cheapBuy);
+addAch("u77", "First Offline", "Earn offline earnings.", s => s.totalIdleTime >= 60);
+addAch("u78", "Long Offline", "Earn offline earnings for 4 hours.", s => s.totalIdleTime >= 14400);
+addAch("u79", "Comeback Kid", "Earn offline earnings for 8 hours.", s => s.totalIdleTime >= 28800);
+addAch("u80", "Glutton for Clicks", "Total 100,000 clicks.", s => s.clicks >= 100000);
+addAch("u81", "Click Sage", "Total 1,000,000 clicks.", s => s.clicks >= 1e6);
+addAch("u82", "Patience", "Play for 1 hour total.", s => s.playTime >= 3600);
+addAch("u83", "Dedication", "Play for 5 hours total.", s => s.playTime >= 18000);
+addAch("u84", "Marathon", "Play for 24 hours total.", s => s.playTime >= 86400);
+addAch("u85", "One Hundred Clicks", "Reach 100 total clicks.", s => s.clicks >= 100);
+addAch("u86", "One Thousand Clicks", "Reach 1,000 total clicks.", s => s.clicks >= 1000);
+addAch("u87", "Ten Thousand Clicks", "Reach 10,000 total clicks.", s => s.clicks >= 10000);
+addAch("u88", "Prestige Prodigy", "Prestige within 10 minutes of starting.", s => s.prestigeSpeedUnder10Min);
+addAch("u89", "Slow and Steady", "Play for 30 minutes before your first prestige.", s => s.firstPrestigeAfter30Min);
+addAch("u90", "Rich and Idle", "Have both 1M flux and 1M cash at the same time.", s => s.flux >= 1e6 && s.cash >= 1e6);
+addAch("u91", "Multimillionaire", "Have 10M cash and 10M flux at the same time.", s => s.cash >= 1e7 && s.flux >= 1e7);
+addAch("u92", "Billionaire Idle", "Have 1B cash and 1B flux at the same time.", s => s.cash >= 1e9 && s.flux >= 1e9);
+addAch("u93", "Multi-Talented", "Own at least 10 different upgrades.", s => Object.keys(s.levels).filter(k => s.levels[k] > 0).length >= 10);
+addAch("u94", "Upgrade Connoisseur", "Own at least 25 different upgrades.", s => Object.keys(s.levels).filter(k => s.levels[k] > 0).length >= 25);
+addAch("u95", "Upgrade Collector", "Own every different upgrade at least once.", s => Object.keys(s.levels).filter(k => s.levels[k] > 0).length >= upgrades.length);
+addAch("u96", "Night Owl", "Play between midnight and 4 AM.", s => s.nightOwl);
+addAch("u97", "Early Bird", "Play between 5 AM and 8 AM.", s => s.earlyBird);
+addAch("u98", "Weekend Warrior", "Play on a Saturday or Sunday.", s => s.weekendPlayed);
+addAch("u99", "Lucky Number", "Reach exactly 777,777 flux at some point.", s => s.luckyNumber);
+addAch("u100", "One Million Clicks", "Achieve 1 million total clicks.", s => s.clicks >= 1e6);
+
+// Completionist
+addAch("comp", "Completionist", "Unlock all other achievements.", s => {
+const others = achievementsData.filter(a => a.id !== "comp");
+return others.filter(a => a.cond(s)).length >= others.length;
+});
+
+while(achievementsData.length < 400) {
+const n = achievementsData.length;
+addAch("myst" + n, "Mystery " + n, "Keep playing to unlock.", s => false);
+}
+
+function fmtShort(n) {
+if (n >= 1e15) return (n/1e15).toFixed(1).replace(/\.0$/,'') + "Qa";
+if (n >= 1e12) return (n/1e12).toFixed(1).replace(/\.0$/,'') + "T";
+if (n >= 1e9) return (n/1e9).toFixed(1).replace(/\.0$/,'') + "B";
+if (n >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'') + "M";
+if (n >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'') + "K";
+return n.toString();
+}
+
+/* =============================================================
+ICONS
+============================================================= */
+const iconPaths={
+spark:'<path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8L12 2Z"/><path d="m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z"/>',
+drone:'<rect x="8" y="8" width="8" height="8" rx="2"/><path d="m4 4 4 4m8 8 4 4M20 4l-4 4m-8 8-4 4M2 2l5 5m15-5-5 5M2 22l5-5m15 5-5-5"/>',
+coil:'<path d="M7 4c-4 0-4 5 0 5s4 5 0 5-4 5 0 5"/><path d="M12 4c-4 0-4 5 0 5s4 5 0 5-4 5 0 5"/><path d="M17 4c-4 0-4 5 0 5s4 5 0 5-4 5 0 5"/>',
+reactor:'<path d="M12 2v4m0 12v4M4.9 4.9l2.8 2.8m8.6 8.6 2.8 2.8M2 12h4m12 0h4M4.9 19.1l2.8-2.8m8.6-8.6 2.8-2.8"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+prism:'<path d="m12 3 9 16H3L12 3Z"/><path d="m12 3 2 16m-2-16-2 16"/>',
+singularity:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+star:'<path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2Z"/>',
+void:'<circle cx="12" cy="12" r="9"/><path d="M8 8c2-2 6-2 8 0s2 6 0 8-6 2-8 0-2-6 0-8Z"/>',
+pulsar:'<circle cx="12" cy="12" r="3"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6M5.6 5.6l4.2 4.2m4.4 4.4 4.2 4.2m0-12.8-4.2 4.2m-4.4 4.4-4.2 4.2"/>',
+gravity:'<circle cx="12" cy="12" r="3"/><path d="M4 8a9 9 0 0 1 16 0M4 16a9 9 0 0 0 16 0"/>',
+galaxy:'<path d="M12 12c-2-6 7-8 8-3 2 7-12 13-17 7-4-5 1-13 8-13"/><circle cx="12" cy="12" r="1"/>',
+nova:'<circle cx="12" cy="12" r="4"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4M4.9 4.9l2.8 2.8m8.6 8.6 2.8 2.8m0-14-2.8 2.8m-8.6 8.6-2.8 2.8"/>',
+rift:'<path d="M8 3 5 8l4 4-4 4 3 5m8-18 3 5-4 4 4 4-3 5"/><path d="M13 4 10 10l4 4-3 6"/>',
+dimension:'<path d="M4 4h16v16H4z"/><path d="m4 4 8 5 8-5m-8 5v11m-8-3 8-5 8 5"/>',
+universe:'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/>',
+quasar:'<circle cx="12" cy="12" r="2"/><path d="M3 12h6m6 0h6M12 3v6m0 6v6M5.6 5.6l4.2 4.2m4.4 4.4 4.2 4.2m0-12.8-4.2 4.2m-4.4 4.4-4.2 4.2"/>',
+nebula:'<path d="M7 18a4 4 0 0 1-.5-8A6 6 0 0 1 18 8a5 5 0 0 1 0 10Z"/><path d="M9 14h.01M15 12h.01M12 16h.01"/>',
+infinity:'<path d="M6 8c-2 0-3 2-3 4s1 4 3 4c3 0 9-8 12-8 2 0 3 2 3 4s-1 4-3 4c-3 0-9-8-12-8Z"/>',
+printer:'<path d="M6 8V3h12v5M6 17H4a2 2 0 0 1-2-2v-4a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v4a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v7H6zM17 11h.01"/>',
+shop:'<path d="M3 10h18l-2-7H5l-2 7Z"/><path d="M5 10v11h14V10M9 21v-7h6v7M3 10a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/>',
+vault:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="4"/><path d="M12 8v8m-4-4h8"/>',
+exchange:'<path d="M4 7h15l-3-3m4 13H5l3 3"/><path d="M19 7v4M5 17v-4"/>',
+bank:'<path d="m3 9 9-6 9 6M4 10h16M5 10v9m5-9v9m4-9v9m5-9v9M3 21h18"/>',
+company:'<path d="M4 21V5l8-3v19m0-12h8v12M2 21h20"/><path d="M7 7h2m-2 4h2m-2 4h2m8-1h2m-2 4h2"/>',
+moon:'<path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/>',
+darkmatter:'<circle cx="12" cy="12" r="9"/><path d="M7 12h10m-5-5v10m-3-8 6 6m0-6-6 6"/>',
+starseed:'<path d="M12 3c4 4 6 7 6 11a6 6 0 0 1-12 0c0-4 2-7 6-11Z"/><path d="M9 15c1 2 3 3 5 2"/>',
+cosmic:'<circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="5" transform="rotate(-35 12 12)"/><circle cx="19" cy="7" r="1"/>',
+antimatter:'<circle cx="12" cy="12" r="9"/><path d="M7 12h10M12 7v10"/>',
+timeless:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2M8 2h8"/>',
+omni:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 3v4m0 10v4m9-9h-4M7 12H3"/>',
+reserve:'<path d="M4 19V9l8-5 8 5v10M2 20h20"/><path d="M9 19v-6h6v6"/>',
+boost:'<path d="m13 2-3 8h7l-6 12 2-9H6l7-11Z"/>',
+tap:'<path d="M8 12V6a2 2 0 0 1 4 0v5-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v8a7 7 0 0 1-7 7h-2a6 6 0 0 1-5-3l-3-5a2 2 0 0 1 3-2l2 2"/>',
+drive:'<circle cx="12" cy="12" r="9"/><path d="m13 3-3 7h5l-4 11 1-8H8l5-10Z"/>',
+loom:'<path d="M4 4h16v16H4z"/><path d="M4 8h16M4 12h16M4 16h16M8 4v16m8-16v16"/>',
+pump:'<path d="M7 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M5 21h14"/><path d="M12 7v8m-3-3 3 3 3-3"/>',
+lock:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
+};
+function iconSvg(name){return `<svg viewBox="0 0 24 24" aria-hidden="true">${iconPaths[name]||iconPaths.spark}</svg>`}
+
+/* =============================================================
+CHAPTERS (named milestones with permanent buffs)
+============================================================= */
+const chapters = [
+{ name: "First Spark", req: 10000, buff: "Starting click power +1" },
+{ name: "Small Lab", req: 100000, buff: "All production +5%" },
+{ name: "Industrial Flux", req: 1000000, buff: "All production +5%" },
+{ name: "Planetary Network", req: 100000000, buff: "All production +5%" },
+{ name: "Galactic Scale", req: 1e12, buff: "All production +5%" },
+{ name: "Reality Engine", req: 1e30, buff: "All production +10%" }
+];
+
+const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+const yesterdayKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+
+function freshState(){return{
+flux:0,cash:0,totalFlux:0,totalCash:0,clicks:0,spentFlux:0,spentCash:0,levels:{},log:[],prestiges:0,warpCores:0,
+goldenClicks:0,streak:0,lastCompletedDay:"",day:todayKey(),todayFlux:0,lastSeen:Date.now(),
+fastClicks:0, erraticClicks:0, totalIdleTime:0, unlockedAch:[], hasReadLog:false, hasOpenedAch:false, hasToggledSound:false,
+storePurchases:{},
+logoClicks:0, tabSwitches:0, buyModeSwitches:0, mutedTime:0, hasMuted:false,
+storeOpens:0, prestigeDialogs:0, prestigeCancels:0, resetDialogs:0, resetCancels:0,
+frenzyActivations:0, fastGoldenClick:false, maxBuys:0, biggestSinglePurchase:0, cheapBuy:false,
+playTime:0, nightOwl:false, earlyBird:false, weekendPlayed:false, luckyNumber:false,
+prestigeSpeedUnder10Min:false, firstPrestigeAfter30Min:false, gameStartTime:Date.now(),
+lastGoldenSpawn:0,
+// orb state
+orbType:null, orbChain:0, orbChainReward:0, orbStormActive:false,
+// combo state
+comboCount:0, comboTimer:0,
+// chapter bonus tracking
+chapterBonus:0,
+// weekly
+weekStart: todayKey(), weekFlux:0, weekGoalDone:false,
+// offline box
+pendingOfflineFlux:0, pendingOfflineCash:0, offlineBoxShown:false,
+// victory
+victoryShown:false
+}}
+function load(){
+try{
+const saved=JSON.parse(localStorage.getItem(SAVE_KEY));
+if(!saved||typeof saved!=="object")return freshState();
+const s={...freshState(),...saved,levels:{...(saved.levels||{})},log:Array.isArray(saved.log)?saved.log:[],unlockedAch:Array.isArray(saved.unlockedAch)?saved.unlockedAch:[],storePurchases:{...(saved.storePurchases||{})}};
+if(s.day!==todayKey()){if(s.lastCompletedDay!==yesterdayKey())s.streak=0;s.day=todayKey();s.todayFlux=0}
+// reset weekly if new week
+const now = new Date();
+const dayOfWeek = now.getDay();
+const monday = new Date(now);
+monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+const weekKey = `${monday.getFullYear()}-${String(monday.getMonth()+1).padStart(2,"0")}-${String(monday.getDate()).padStart(2,"0")}`;
+if(s.weekStart !== weekKey){s.weekStart = weekKey; s.weekFlux = 0; s.weekGoalDone = false;}
+return s;
+}catch{return freshState()}
+}
+let state=load(),filter="all",buyMode="1",lastFrame=performance.now(),lastRender=0,lastSave=0;
+let audio=null,sound=true,frenzy=1,frenzyLeft=0,toastTimer;
+
+let displayFlux = state.flux;
+let displayCash = state.cash;
+
+// Global orb effect variables
+let towerBoost = 1;
+let towerBoostLeft = 0;
+let clickFrenzy = 1;
+let clickFrenzyLeft = 0;
+let buildingSpecial = null;
+let buildingSpecialLeft = 0;
+
+function fmt(n,money=false){
+if(!Number.isFinite(n))return money?"$∞":"∞";
+const sign=n<0?"-":"";n=Math.abs(n);
+if(n<1000){const s=n<10&&n%1?n.toFixed(1):Math.floor(n).toLocaleString();return(money?"$":"")+sign+s}
+const names=["K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","Dc","Ud","Dd","Td","Qad","Qid","Sxd","Spd","Ocd","Nod"];
+let i=-1;while(n>=1000&&i<names.length-1){n/=1000;i++}
+return(money?"$":"")+sign+n.toFixed(n>=100?0:n>=10?1:2)+names[i];
+}
+function level(item){return Number(state.levels[item.id])||0}
+function cost(item){return Math.ceil(item.base*Math.pow(item.growth,level(item)))}
+function warpCost(){return Math.ceil(5000000*Math.pow(12,state.prestiges))}
+function chapterMult(){
+let m = 1;
+for (const c of chapters) {
+if (state.totalFlux >= c.req) m += 0.05;
+}
+return m;
+}
+function prodMult(){
+let m=(1+state.warpCores*0.08)*chapterMult();
+for(const u of upgrades)if(u.type==="multiplier")m+=u.power*level(u);
+return m * towerBoost;
+}
+function fluxRate(){
+let base = upgrades.filter(u=>u.type==="flux").reduce((a,u)=>a+u.power*level(u),0);
+if (buildingSpecial && buildingSpecial.type === "flux") base *= 10;
+return base * prodMult();
+}
+function cashRate(){
+let base = upgrades.filter(u=>u.type==="cash").reduce((a,u)=>a+u.power*level(u),0);
+if (buildingSpecial && buildingSpecial.type === "cash") base *= 10;
+return base * prodMult();
+}
+function clickPower(){
+let base = 1 + upgrades.filter(u=>u.type==="click").reduce((a,u)=>a+u.power*level(u),0);
+if (state.chapterBonus > 0) base += state.chapterBonus;
+let comboMult = 1 + Math.min(1, state.comboCount * 0.1);
+return base * prodMult() * frenzy * clickFrenzy * comboMult;
+}
+
+/* =============================================================
+SOUND
+============================================================= */
+function soundEffect(type="click"){
+if(!sound)return;
+try{
+const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+audio ||= new C();if(audio.state==="suspended")audio.resume();
+const now=audio.currentTime;
+
+if(type==="click"){
+const o=audio.createOscillator(),g=audio.createGain();
+o.type="sine";
+o.frequency.setValueAtTime(380,now);
+o.frequency.exponentialRampToValueAtTime(200,now+0.05);
+g.gain.setValueAtTime(0.0001,now);
+g.gain.exponentialRampToValueAtTime(0.018,now+0.006);
+g.gain.exponentialRampToValueAtTime(0.0001,now+0.07);
+o.connect(g);g.connect(audio.destination);
+o.start(now);o.stop(now+0.09);
+return;
+}
+const settings={buy:[520,980,.09],gold:[800,1600,.12],milestone:[600,1000,.15],ach:[600,900,.12]};
+const[start,end,duration]=settings[type]||settings.click;
+const o=audio.createOscillator(),g=audio.createGain();o.connect(g);g.connect(audio.destination);
+o.type=type==="milestone"?"square":type==="gold"?"triangle":"sine";
+o.frequency.setValueAtTime(start,now);o.frequency.exponentialRampToValueAtTime(end,now+duration);
+g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(type==="gold"?.04:.025,now+.01);g.gain.exponentialRampToValueAtTime(.0001,now+duration+.12);
+o.start(now);o.stop(now+duration+.13);
+}catch{}
+}
+
+function playGoldenChime(){
+if(!sound)return;
+try{
+const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+audio ||= new C();if(audio.state==="suspended")audio.resume();
+const now=audio.currentTime;
+const o = audio.createOscillator();
+const g = audio.createGain();
+o.type = "sine";
+o.frequency.setValueAtTime(880, now);
+o.frequency.exponentialRampToValueAtTime(1320, now + 0.15);
+g.gain.setValueAtTime(0, now);
+g.gain.linearRampToValueAtTime(0.06, now + 0.02);
+g.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+o.connect(g); g.connect(audio.destination);
+o.start(now); o.stop(now + 0.8);
+const o2 = audio.createOscillator();
+const g2 = audio.createGain();
+o2.type = "triangle";
+o2.frequency.setValueAtTime(1760, now);
+g2.gain.setValueAtTime(0, now);
+g2.gain.linearRampToValueAtTime(0.02, now + 0.02);
+g2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+o2.connect(g2); g2.connect(audio.destination);
+o2.start(now); o2.stop(now + 0.5);
+}catch{}
+}
+
+/* =============================================================
+ACHIEVEMENTS LOGIC
+============================================================= */
+let achPopupTimer;
+function checkAchievements(){
+let newlyUnlocked = false;
+achievementsData.forEach(a => {
+if (!state.unlockedAch.includes(a.id) && a.cond(state)) {
+state.unlockedAch.push(a.id);
+newlyUnlocked = true;
+$("ach-popup-name").textContent = a.name;
+const popup = $("ach-popup");
+popup.classList.add("show");
+clearTimeout(achPopupTimer);
+achPopupTimer = setTimeout(() => popup.classList.remove("show"), 3500);
+soundEffect("ach");
+logEvent(`Unlocked achievement: ${a.name}`);
+}
+});
+if (newlyUnlocked) renderAchievements();
+}
+
+function renderAchievements(){
+const list = $("ach-list");
+list.innerHTML = "";
+const unlockedCount = state.unlockedAch.length;
+$("ach-count").textContent = unlockedCount;
+$("ach-percent").textContent = Math.floor((unlockedCount / 400) * 100) + "%";
+achievementsData.forEach(a => {
+const isUnlocked = state.unlockedAch.includes(a.id);
+const item = document.createElement("div");
+item.className = `ach-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+item.innerHTML = `<div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div>`;
+list.appendChild(item);
+});
+}
+
+$("open-ach").addEventListener("click", () => {
+$("ach-panel").classList.add("open");
+$("ach-overlay").classList.add("open");
+$("app").classList.add("pushed");
+state.hasOpenedAch = true;
+checkAchievements();
+});
+$("close-ach").addEventListener("click", closeAchPanel);
+$("ach-overlay").addEventListener("click", closeAchPanel);
+function closeAchPanel(){
+$("ach-panel").classList.remove("open");
+$("ach-overlay").classList.remove("open");
+$("app").classList.remove("pushed");
+}
+
+/* =============================================================
+STORE — EXPENSIVE
+============================================================= */
+const storeItems = [
+{id:"golden",name:"Golden Attraction",desc:"Golden Orbs spawn 25% more often.",cost:25,color:"var(--cyan)"},
+{id:"headstart",name:"Head Start",desc:"Start every Reality Warp with 1,000 Flux.",cost:50,color:"var(--purple)"},
+{id:"clickboost",name:"Click Amplifier",desc:"+10% click power permanently.",cost:75,color:"var(--pink)"},
+{id:"cashboost",name:"Cash Catalyst",desc:"+10% cash production permanently.",cost:100,color:"var(--gold)"},
+{id:"fluxboost",name:"Flux Catalyst",desc:"+10% flux production permanently.",cost:125,color:"var(--green)"},
+{id:"auto",name:"Auto-Clicker",desc:"Automatically clicks 1x per second.",cost:150,color:"var(--cyan)"},
+{id:"golden2",name:"Golden Magnet",desc:"Golden Orbs last 5 seconds longer.",cost:180,color:"var(--purple)"},
+{id:"offline",name:"Offline Booster",desc:"Offline earnings increased by 50%.",cost:200,color:"var(--pink)"},
+{id:"start2",name:"Advanced Head Start",desc:"Start every Reality Warp with 10,000 Flux.",cost:250,color:"var(--gold)"},
+{id:"multiplier",name:"Core Multiplier",desc:"+5% more production per Warp Core.",cost:300,color:"var(--green)"},
+{id:"click2",name:"Click Overdrive",desc:"+25% click power permanently.",cost:375,color:"var(--cyan)"},
+{id:"cash2",name:"Cash Overdrive",desc:"+25% cash production permanently.",cost:450,color:"var(--purple)"},
+{id:"flux2",name:"Flux Overdrive",desc:"+25% flux production permanently.",cost:500,color:"var(--pink)"},
+{id:"auto2",name:"Auto-Clicker II",desc:"Automatically clicks 5x per second.",cost:600,color:"var(--gold)"},
+{id:"warpcore",name:"Warp Core Bank",desc:"Start every warp with +1 Warp Core.",cost:750,color:"var(--green)"}
+];
+
+function renderStore() {
+const container = $("store-items");
+container.innerHTML = "";
+storeItems.forEach(item => {
+const owned = state.storePurchases[item.id];
+const row = document.createElement("div");
+row.className = "dialog-stat";
+row.style.display = "flex";
+row.style.justifyContent = "space-between";
+row.style.alignItems = "center";
+row.style.marginBottom = "10px";
+row.innerHTML = `
+<div>
+<b style="color: ${item.color}">${item.name} ${owned ? "✓" : ""}</b>
+<small style="margin-top: 2px;">${item.desc}</small>
+</div>
+<button class="prestige-btn" style="width: auto; margin: 0; padding: 6px 12px;" ${owned ? "disabled" : ""} data-store-id="${item.id}">
+${owned ? "OWNED" : item.cost + " CORES"}
+</button>
+`;
+container.appendChild(row);
+});
+}
+
+$("open-prestige-store").addEventListener("click", () => {
+state.storeOpens++;
+renderStore();
+$("prestige-store-dialog").showModal();
+checkAchievements();
+});
+$("close-store").addEventListener("click", () => {
+$("prestige-store-dialog").close();
+});
+$("prestige-store-dialog").addEventListener("click", e => {
+if(e.target === $("prestige-store-dialog")) $("prestige-store-dialog").close();
+});
+
+$("store-items").addEventListener("click", e => {
+const btn = e.target.closest("button[data-store-id]");
+if (!btn) return;
+const item = storeItems.find(i => i.id === btn.dataset.storeId);
+if (!item || state.storePurchases[item.id]) return;
+if (state.warpCores < item.cost) {
+notify("NOT ENOUGH WARP CORES");
+return;
+}
+state.warpCores -= item.cost;
+state.storePurchases[item.id] = true;
+notify(`PURCHASED: ${item.name}`);
+soundEffect("buy");
+logEvent(`Purchased store item: ${item.name}`);
+render();
+save();
+renderStore();
+});
+
+/* =============================================================
+CLICK
+============================================================= */
+let clickTimestamps = [];
+let lastClickTime = 0;
+
+function generate(e){
+soundEffect("click");
+const gain = clickPower();
+addFlux(gain);
+state.clicks++;
+
+const now = performance.now();
+// Combo tracking
+if (now - lastClickTime < 500) {
+state.comboCount = Math.min(10, state.comboCount + 1);
+} else {
+state.comboCount = 0;
+}
+lastClickTime = now;
+state.comboTimer = 1.0;
+
+clickTimestamps.push(now);
+clickTimestamps = clickTimestamps.filter(t => now - t < 1000);
+if (clickTimestamps.length > state.fastClicks) state.fastClicks = clickTimestamps.length;
+
+if (e.clientX && e.clientY) {
+const rect = $("core").getBoundingClientRect();
+const centerX = rect.left + rect.width / 2;
+const centerY = rect.top + rect.height / 2;
+const dist = Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2));
+if (dist > 100) state.erraticClicks++;
+}
+
+const ripple = $("click-ripple");
+ripple.classList.remove("animate");
+void ripple.offsetWidth;
+ripple.classList.add("animate");
+
+const btn = $("core-plus");
+btn.style.transform = "scale(1.15)";
+setTimeout(() => btn.style.transform = "scale(1)", 100);
+
+const zone = $("click-zone");
+zone.style.transform = "translateY(2px)";
+setTimeout(() => zone.style.transform = "translateY(0)", 50);
+
+checkAchievements();
+render();
+}
+
+$("core").addEventListener("pointerdown", generate);
+
+// Brand logo click
+const brandEl = document.querySelector(".brand");
+if (brandEl) {
+brandEl.style.cursor = "none";
+brandEl.addEventListener("click", () => {
+state.logoClicks++;
+notify("SWIRL");
+checkAchievements();
+});
+}
+
+document.addEventListener("mousemove", e => {
+const x = (e.clientX / innerWidth - 0.5) * 20;
+const y = (e.clientY / innerHeight - 0.5) * 20;
+document.querySelectorAll('.aurora').forEach(el => {
+el.style.transform = `translate(${x}px, ${y}px)`;
+});
+});
+
+/* =============================================================
+BUY
+============================================================= */
+function getBuyAmount(item) {
+const currentLvl = level(item);
+const available = item.currency === "cash" ? state.cash : state.flux;
+if (buyMode === "max") {
+let amount = 0, totalCost = 0;
+while (true) {
+const nextCost = Math.ceil(item.base * Math.pow(item.growth, currentLvl + amount));
+if (totalCost + nextCost > available) break;
+totalCost += nextCost;
+amount++;
+if (amount > 10000) break;
+}
+if (amount === 0) return { amount: 1, cost: Math.ceil(item.base * Math.pow(item.growth, currentLvl)) };
+return { amount, cost: totalCost };
+}
+let amount = parseInt(buyMode);
+let totalCost = 0;
+for (let i = 0; i < amount; i++) totalCost += Math.ceil(item.base * Math.pow(item.growth, currentLvl + i));
+return { amount, cost: totalCost };
+}
+
+function affordable(item) {
+const currentLvl = level(item);
+const available = item.currency === "cash" ? state.cash : state.flux;
+if (buyMode === "max") {
+const nextCost = Math.ceil(item.base * Math.pow(item.growth, currentLvl));
+return available >= nextCost;
+}
+const { cost: totalCost } = getBuyAmount(item);
+return available >= totalCost;
+}
+
+function buy(id) {
+const item = upgrades.find(u => u.id === id);
+if (!item) return;
+const currentLvl = level(item);
+const available = item.currency === "cash" ? state.cash : state.flux;
+let amountToBuy = 0, totalCost = 0;
+
+if (buyMode === "max") {
+state.maxBuys++;
+while (true) {
+const nextCost = Math.ceil(item.base * Math.pow(item.growth, currentLvl + amountToBuy));
+if (totalCost + nextCost > available) break;
+totalCost += nextCost;
+amountToBuy++;
+if (amountToBuy > 10000) break;
+}
+} else {
+const target = parseInt(buyMode);
+for (let i = 0; i < target; i++) {
+const nextCost = Math.ceil(item.base * Math.pow(item.growth, currentLvl + i));
+if (totalCost + nextCost > available) break;
+totalCost += nextCost;
+amountToBuy++;
+}
+}
+if (amountToBuy === 0) return;
+
+if (amountToBuy > state.biggestSinglePurchase) state.biggestSinglePurchase = amountToBuy;
+if (item.currency === "cash") { state.cash -= totalCost; state.spentCash += totalCost; }
+else { state.flux -= totalCost; state.spentFlux += totalCost; }
+
+state.levels[id] = currentLvl + amountToBuy;
+if (state.flux < 100) state.cheapBuy = true;
+
+soundEffect("buy");
+logEvent(`${item.name} upgraded by ${amountToBuy} (Level ${state.levels[id]}).`);
+checkAchievements();
+render();
+save();
+}
+
+$("buy-tabs").addEventListener("click", e => {
+const tab = e.target.closest(".buy-tab");
+if (!tab) return;
+buyMode = tab.dataset.buy;
+state.buyModeSwitches++;
+document.querySelectorAll(".buy-tab").forEach(t => t.classList.toggle("active", t === tab));
+renderUpgrades();
+});
+
+$("upgrades").addEventListener("click", e => {
+const button = e.target.closest("button[data-id]");
+if (button) buy(button.dataset.id);
+});
+
+$("tabs").addEventListener("click", e => {
+const tab = e.target.closest(".tab");
+if (!tab) return;
+filter = tab.dataset.filter;
+state.tabSwitches++;
+document.querySelectorAll(".tab").forEach(t => {
+const active = t === tab;
+t.classList.toggle("active", active);
+t.setAttribute("aria-selected", String(active));
+});
+soundEffect("click");
+renderUpgrades();
+});
+
+/* =============================================================
+RENDER
+============================================================= */
+function notify(text){const el=$("toast");el.textContent=text;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2600)}
+function logEvent(text){state.log.unshift({text,time:Date.now()});state.log=state.log.slice(0,8)}
+
+function addFlux(amount){
+if(!Number.isFinite(amount)||amount<=0)return;
+state.flux+=amount;state.totalFlux+=amount;state.todayFlux+=amount;
+state.weekFlux += amount;
+if (Math.floor(state.flux) === 777777 && !state.luckyNumber) state.luckyNumber = true;
+if(state.todayFlux>=dailyGoal()&&state.lastCompletedDay!==todayKey()){
+state.streak=state.lastCompletedDay===yesterdayKey()?state.streak+1:1;
+state.lastCompletedDay=todayKey();
+const bonus=10000*state.streak;state.flux+=bonus;state.totalFlux+=bonus;
+logEvent(`Daily goal complete! ${state.streak}-day streak · +${fmt(bonus)} Flux`);
+notify(`DAILY GOAL COMPLETE · ${state.streak}-DAY STREAK`);soundEffect("milestone");
+}
+}
+
+function dailyGoal() {
+return Math.floor(50000 * Math.pow(1.5, Math.max(0, state.streak)));
+}
+
+function addCash(amount){if(Number.isFinite(amount)&&amount>0){state.cash+=amount;state.totalCash+=amount}}
+
+function updateButtonTier() {
+const btn = $("core");
+const totalUpgrades = Object.values(state.levels).reduce((a,b)=>a+b,0);
+let tier = 0;
+if (totalUpgrades >= 50) tier = 1;
+if (totalUpgrades >= 150) tier = 2;
+if (totalUpgrades >= 300) tier = 3;
+if (totalUpgrades >= 500) tier = 4;
+for(let i=0; i<=4; i++) btn.classList.remove(`tier-${i}`);
+btn.classList.add(`tier-${tier}`);
+}
+
+function renderChapters(){
+const container = $("chapter-roadmap");
+container.innerHTML = "";
+const nextIdx = chapters.findIndex(c => state.totalFlux < c.req);
+const startIdx = Math.max(0, nextIdx - 1);
+for (let i = startIdx; i < startIdx + 4; i++) {
+if (i >= chapters.length) break;
+const val = chapters[i].req;
+const isReached = state.totalFlux >= val;
+const isNext = i === nextIdx;
+const node = document.createElement("div");
+node.className = `chapter-node ${isReached ? 'active' : isNext ? 'next' : 'future'}`;
+const fill = document.createElement("div");
+fill.className = "chapter-node-fill";
+if (isReached) fill.style.width = '100%';
+else if (isNext) {
+const prev = i > 0 ? chapters[i-1].req : 0;
+const pct = Math.max(0, Math.min(100, ((state.totalFlux - prev) / (val - prev)) * 100));
+fill.style.width = pct + '%';
+} else fill.style.width = '0%';
+node.appendChild(fill);
+container.appendChild(node);
+}
+const next = chapters[nextIdx];
+$("chapter-text").textContent = next ? `CHAPTER ${nextIdx+1}: ${next.name.toUpperCase()}` : "ALL CHAPTERS COMPLETE";
+}
+
+function renderGrandGoal(){
+const reqFlux = 1e30, reqCash = 1e20, reqCores = 100;
+const pFlux = Math.min(1, state.flux / reqFlux);
+const pCash = Math.min(1, state.cash / reqCash);
+const pCores = Math.min(1, state.warpCores / reqCores);
+const pTotal = (pFlux + pCash + pCores) / 3;
+$("grand-goal-progress").style.width = (pTotal * 100) + "%";
+$("grand-goal-status").textContent = Math.floor(pTotal * 100) + "% COMPLETE";
+if (pTotal >= 1 && !state.victoryShown) {
+state.victoryShown = true;
+$("victory-overlay").classList.add("show");
+}
+}
+
+function renderNextGoal(){
+let goal = "";
+// Check nearest upgrade
+let nearestUpgrade = null; let nearestRatio = 0;
+for (const u of upgrades) {
+const lvl = level(u);
+const c = Math.ceil(u.base * Math.pow(u.growth, lvl));
+const currency = u.currency === "cash" ? state.cash : state.flux;
+if (currency < c) {
+const ratio = currency / c;
+if (ratio > nearestRatio) { nearestRatio = ratio; nearestUpgrade = {u, c}; }
+}
+}
+if (nearestUpgrade && nearestRatio > 0.5) {
+goal = `${Math.floor(nearestRatio * 100)}% to ${nearestUpgrade.u.name} — ${fmt(nearestUpgrade.c - (nearestUpgrade.u.currency === "cash" ? state.cash : state.flux))} ${nearestUpgrade.u.currency === "cash" ? "Cash" : "Flux"} left`;
+}
+// Check chapter
+const nextChapter = chapters.find(c => state.totalFlux < c.req);
+if (!goal && nextChapter) {
+const prev = chapters[chapters.indexOf(nextChapter) - 1]?.req || 0;
+const pct = Math.floor(((state.totalFlux - prev) / (nextChapter.req - prev)) * 100);
+goal = `${pct}% to Chapter "${nextChapter.name}"`;
+}
+// Check warp
+if (!goal) {
+const wc = warpCost();
+const pct = Math.floor((state.flux / wc) * 100);
+goal = `${pct}% to Reality Warp (${fmt(wc)} Flux)`;
+}
+$("next-goal-text").textContent = goal;
+}
+
+function renderDailyTimer(){
+const now = new Date();
+const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+const diff = tomorrow - now;
+const h = Math.floor(diff / 3600000);
+const m = Math.floor((diff % 3600000) / 60000);
+const s = Math.floor((diff % 60000) / 1000);
+$("daily-timer").textContent = `NEXT STREAK IN ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function renderUpgrades(){
+const root = $("upgrades");
+root.innerHTML = "";
+let visibleUpgrades = upgrades.filter(u => filter === "all" || u.category === filter);
+visibleUpgrades.forEach((item, index) => {
+const can = affordable(item), money = item.currency === "cash";
+const effect = item.type === "flux" ? `+${fmt(item.power)} Flux/s` : item.type === "cash" ? `+${fmt(item.power,true)}/s` : item.type === "click" ? `+${fmt(item.power)} per click` : `+${Math.round(item.power*100)}% production`;
+const { amount, cost: totalCost } = getBuyAmount(item);
+const costLabel = buyMode === "max" ? `MAX` : `x${buyMode}`;
+const isLocked = item.base > (state.totalFlux * 30) && level(item) === 0 && index > 2;
+const row = document.createElement("div");
+row.className = `upgrade ${can ? 'affordable-glow' : 'unaffordable'} ${isLocked ? 'locked' : ''}`;
+if (isLocked) {
+row.innerHTML = `<div class="icon">${iconSvg("lock")}</div><div><div class="up-name">???</div><div class="up-desc">Keep generating Flux to unlock.</div></div><button class="buy" disabled type="button">LOCKED</button>`;
+} else {
+const lvl = level(item);
+let iconColor = "var(--cyan)";
+if (lvl > 100) iconColor = "var(--gold)";
+else if (lvl > 50) iconColor = "var(--pink)";
+else if (lvl > 10) iconColor = "var(--purple)";
+row.innerHTML = `
+<div class="icon" style="color: ${iconColor}">${iconSvg(item.icon)}</div>
+<div>
+<div class="up-name">${item.name} <span style="color:var(--muted);font-weight:400">(+${amount})</span></div>
+<div class="up-desc">${item.desc} · ${effect}</div>
+<div class="up-level">LEVEL ${lvl}</div>
+</div>
+<button class="buy ${money?"cash":""}" data-id="${item.id}" ${can?"":"disabled"} type="button">${costLabel}<small>${fmt(totalCost,money)} ${money?"CASH":"FLUX"}</small></button>
+`;
+}
+root.appendChild(row);
+});
+updateButtonTier();
+}
+
+let lastLogString = "";
+function renderLog(){
+const currentLogString = JSON.stringify(state.log);
+if (currentLogString === lastLogString) return;
+lastLogString = currentLogString;
+const root = $("log");
+if(!state.log.length){
+root.innerHTML = '<div class="empty">Your lab is ready. Generate Flux to begin.</div>';
+return;
+}
+root.innerHTML = state.log.map(entry => {
+const safe = String(entry.text).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const secs = Math.max(0, Math.floor((Date.now() - entry.time) / 1000));
+const ago = secs < 5 ? "JUST NOW" : secs < 60 ? `${secs} SEC AGO` : `${Math.floor(secs / 60)} MIN AGO`;
+return `<div class="log-entry"><b>${safe}</b><br>${ago}</div>`;
+}).join("");
+}
+
+function renderSmoothNumbers(){
+const diffFlux = state.flux - displayFlux;
+const diffCash = state.cash - displayCash;
+if (Math.abs(diffFlux) > 0.1) displayFlux += diffFlux * 0.15; else displayFlux = state.flux;
+if (Math.abs(diffCash) > 0.1) displayCash += diffCash * 0.15; else displayCash = state.cash;
+$("flux").textContent = fmt(displayFlux);
+$("cash").textContent = fmt(displayCash, true);
+}
+
+function renderPrestigeAura() {
+const aura = $("prestige-aura");
+const cores = state.warpCores;
+if (cores > 0) {
+const intensity = Math.min(100, cores * 5);
+aura.style.boxShadow = `inset 0 0 ${intensity}px rgba(255, 91, 157, ${Math.min(0.4, cores * 0.02)})`;
+} else {
+aura.style.boxShadow = "inset 0 0 100px rgba(255, 91, 157, 0)";
+}
+}
+
+function render(){
+renderSmoothNumbers();
+$("flux-rate").textContent=fmt(fluxRate())+"/s";
+$("cash-rate").textContent=fmt(cashRate(),true)+"/s";
+$("cash-rate-hero").textContent=fmt(cashRate(),true)+"/s";
+$("click-power").textContent="+"+fmt(clickPower());
+$("core-plus").textContent="+"+fmt(clickPower());
+$("global-mult").textContent="x"+prodMult().toFixed(2);
+$("clicks").textContent=fmt(state.clicks);
+$("spent-flux").textContent=fmt(state.spentFlux);
+$("spent-cash").textContent=fmt(state.spentCash,true);
+$("warp-cores").textContent=fmt(state.warpCores);
+$("warp-mult").textContent="x"+(1+state.warpCores*0.08).toFixed(2);
+
+const done=state.lastCompletedDay===todayKey();
+$("daily-card").classList.toggle("complete",done);
+$("daily-title").textContent=done?"✓ DAILY STREAK SECURED":"✦ DAILY STREAK";
+$("daily-desc").textContent=done?"You're safe for today. Come back tomorrow!":`Generate ${fmt(dailyGoal())} Flux today to keep your streak alive.`;
+$("daily-progress").style.width=(done?100:Math.min(100,state.todayFlux/dailyGoal()*100))+"%";
+$("daily-status").textContent=done?"COMPLETE":`${fmt(state.todayFlux)} / ${fmt(dailyGoal())} FLUX`;
+$("daily-streak").textContent=`${state.streak} DAY STREAK`;
+renderDailyTimer();
+
+renderChapters();
+renderGrandGoal();
+renderNextGoal();
+renderPrestigeAura();
+$("prestige-btn").disabled=state.flux<warpCost();
+$("prestige-btn").textContent=`REALITY WARP · ${fmt(warpCost())} FLUX`;
+renderUpgrades();
+renderLog();
+}
+
+function save(){
+state.lastSeen=Date.now();
+try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));$("save-status").textContent="SAVED LOCALLY"}
+catch{$("save-status").textContent="SAVE FAILED"}
+}
+function offlineEarnings(){
+const seconds=Math.max(0,Math.min(8*60*60,(Date.now()-(state.lastSeen||Date.now()))/1000));
+if(seconds<5)return;
+state.totalIdleTime += seconds;
+let f=fluxRate()*seconds,c=cashRate()*seconds;
+if (state.storePurchases["offline"]) { f *= 1.5; c *= 1.5; }
+if (f > 0 || c > 0) {
+state.pendingOfflineFlux = f;
+state.pendingOfflineCash = c;
+showOfflineBox(seconds, f);
+}
+checkAchievements();
+}
+
+function showOfflineBox(seconds, fluxAmount) {
+const box = $("offline-box");
+const mins = Math.floor(seconds / 60);
+$("offline-sub").textContent = `You were away for ${mins} minute${mins === 1 ? '' : 's'}`;
+$("offline-reward").textContent = `+${fmt(fluxAmount)} Flux`;
+box.classList.add("show");
+}
+
+$("offline-claim").addEventListener("click", () => {
+const box = $("offline-box");
+box.classList.remove("show");
+addFlux(state.pendingOfflineFlux);
+addCash(state.pendingOfflineCash);
+logEvent(`Offline earnings: ${fmt(state.pendingOfflineFlux)} Flux and ${fmt(state.pendingOfflineCash,true)} cash.`);
+notify("WELCOME BACK · OFFLINE EARNINGS ADDED");
+state.pendingOfflineFlux = 0;
+state.pendingOfflineCash = 0;
+render();
+save();
+});
+
+function openPrestigeDialog(){
+const required=warpCost();if(state.flux<required)return;
+state.prestigeDialogs++;
+$("dialog-cost").textContent=fmt(required)+" FLUX";
+$("dialog-gain").textContent=fmt(Math.floor(Math.sqrt(required/5000000)))+" CORES";
+$("confirm-prestige").disabled=state.flux<required;
+$("prestige-dialog").showModal();
+checkAchievements();
+}
+
+function confirmPrestige(){
+const required=warpCost();
+if(state.flux<required){$("prestige-dialog").close();render();return}
+const gained=Math.floor(Math.sqrt(required/5000000));
+if (state.prestiges === 0) {
+if (Date.now() - state.gameStartTime < 600000) state.prestigeSpeedUnder10Min = true;
+else if (Date.now() - state.gameStartTime > 1800000) state.firstPrestigeAfter30Min = true;
+}
+state.warpCores+=gained;state.prestiges++;state.flux=0;state.cash=0;state.levels={};
+
+// Clear all orb effects and combo on warp
+frenzy = 1; frenzyLeft = 0;
+towerBoost = 1; towerBoostLeft = 0;
+clickFrenzy = 1; clickFrenzyLeft = 0;
+buildingSpecial = null; buildingSpecialLeft = 0;
+state.comboCount = 0; state.comboTimer = 0;
+state.orbType = null; state.orbStormActive = false; state.orbChain = 0;
+$("core").classList.remove("frenzy");
+
+logEvent(`Reality warped. Gained ${fmt(gained)} Warp Core(s). Next cost: ${fmt(warpCost())} Flux.`);
+$("prestige-dialog").close();notify(`REALITY WARPED · +${fmt(gained)} CORES`);
+checkAchievements();
+render();save();
+}
+$("prestige-btn").addEventListener("click",openPrestigeDialog);
+$("cancel-prestige").addEventListener("click",()=>{state.prestigeCancels++;$("prestige-dialog").close();checkAchievements();});
+$("confirm-prestige").addEventListener("click",confirmPrestige);
+$("prestige-dialog").addEventListener("click",e=>{if(e.target===$("prestige-dialog")){state.prestigeCancels++;$("prestige-dialog").close();checkAchievements();}});
+
+$("sound-toggle").addEventListener("click",()=>{
+sound=!sound;
+if (!sound) state.hasMuted = true;
+$("sound-toggle").textContent=sound?"SOUND ON":"SOUND OFF";
+$("sound-toggle").setAttribute("aria-pressed",String(sound));
+if(sound)soundEffect("click");
+state.hasToggledSound = true;
+checkAchievements();
+});
+
+$("reset").addEventListener("click",()=>{
+state.resetDialogs++;
+$("reset-dialog").showModal();
+checkAchievements();
+});
+$("cancel-reset").addEventListener("click",()=>{state.resetCancels++;$("reset-dialog").close();checkAchievements();});
+$("confirm-reset").addEventListener("click",()=>{
+state=freshState();displayFlux=0;displayCash=0;
+save(); render(); renderAchievements(); closeAchPanel();
+notify("LAB RESET");
+$("reset-dialog").close();
+});
+$("reset-dialog").addEventListener("click",e=>{
+if(e.target===$("reset-dialog")){state.resetCancels++;$("reset-dialog").close();checkAchievements();}
+});
+
+$("victory-close").addEventListener("click", () => {
+$("victory-overlay").classList.remove("show");
+});
+
+/* =============================================================
+STARFIELD
+============================================================= */
+const starCanvas=$("stars"),starCtx=starCanvas.getContext("2d");
+const shootCanvas=$("shooting"),shootCtx=shootCanvas.getContext("2d");
+let stars=[],shootingStars=[];
+let bgFrameCount = 0;
+let mouseParallax = {x: 0, y: 0};
+
+document.addEventListener("mousemove", e => {
+mouseParallax.x = (e.clientX / innerWidth - 0.5) * 30;
+mouseParallax.y = (e.clientY / innerHeight - 0.5) * 30;
+});
+
+function resizeCanvases(){
+const dpr=Math.min(devicePixelRatio||1,2);
+for(const [c,ctx] of [[starCanvas,starCtx],[shootCanvas,shootCtx]]){
+c.width=innerWidth*dpr;c.height=innerHeight*dpr;
+c.style.width=innerWidth+"px";c.style.height=innerHeight+"px";
+ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+stars=Array.from({length:Math.min(120,Math.floor(innerWidth/8))},()=>({
+x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+r:Math.random()*1.4+.2,a:Math.random()*.55+.12,p:Math.random()*7,
+depth: Math.random() * 0.5 + 0.1
+}));
+}
+function drawStars(t){
+starCtx.clearRect(0,0,innerWidth,innerHeight);
+for(const s of stars){
+const px = mouseParallax.x * s.depth;
+const py = mouseParallax.y * s.depth;
+starCtx.fillStyle=`rgba(200,215,255,${s.a*(.65+Math.sin(t*.001+s.p)*.35)})`;
+starCtx.beginPath();starCtx.arc(s.x + px, s.y + py, s.r,0,Math.PI*2);starCtx.fill();
+}
+}
+function spawnShootingStar(){
+const startX=innerWidth*0.55+Math.random()*innerWidth*0.45;
+const startY=-20+Math.random()*80;
+const angle=Math.PI*0.62+Math.random()*0.25;
+const speed=7+Math.random()*5;
+shootingStars.push({
+x:startX,y:startY,
+vx:Math.cos(angle)*speed,
+vy:Math.sin(angle)*speed,
+len:80+Math.random()*80,
+life:1,decay:0.004+Math.random()*0.004,
+hue:Math.random()<0.5?190:280
+});
+}
+let shootTimer=0;
+function drawShooting(dt){
+shootCtx.clearRect(0,0,innerWidth,innerHeight);
+for(let i=shootingStars.length-1;i>=0;i--){
+const s=shootingStars[i];
+s.x+=s.vx;s.y+=s.vy;s.life-=s.decay;
+if(s.life<=0||s.x<-100||s.y>innerHeight+100){shootingStars.splice(i,1);continue}
+const tailX=s.x-s.vx*(s.len/10);
+const tailY=s.y-s.vy*(s.len/10);
+const grad=shootCtx.createLinearGradient(s.x,s.y,tailX,tailY);
+grad.addColorStop(0,`hsla(${s.hue},100%,85%,${s.life})`);
+grad.addColorStop(0.4,`hsla(${s.hue},100%,70%,${s.life*0.5})`);
+grad.addColorStop(1,`hsla(${s.hue},100%,60%,0)`);
+shootCtx.strokeStyle=grad;shootCtx.lineWidth=2.2;shootCtx.lineCap="round";
+shootCtx.beginPath();shootCtx.moveTo(s.x,s.y);shootCtx.lineTo(tailX,tailY);shootCtx.stroke();
+shootCtx.fillStyle=`hsla(${s.hue},100%,90%,${s.life})`;
+shootCtx.beginPath();shootCtx.arc(s.x,s.y,2,0,Math.PI*2);shootCtx.fill();
+}
+}
+resizeCanvases();
+addEventListener("resize",resizeCanvases);
+
+/* =============================================================
+GOLDEN ORB — TYPES, RARITY, ANIMATIONS
+============================================================= */
+let goldenTimer, hideGoldenTimer, growTimer;
+let trailInterval;
+let orbStormTimers = [];
+
+function getOrbType(){
+const r = Math.random();
+// Weighted:
+// Flux Frenzy 30%, Click Frenzy 30%, Orb Storm 15%, Lucky 15%, Ruin 5%, Building Special 5%
+if (r < 0.30) return "fluxFrenzy";
+if (r < 0.60) return "clickFrenzy";
+if (r < 0.75) return "orbStorm";
+if (r < 0.90) return "lucky";
+if (r < 0.95) return "ruin";
+return "buildingSpecial";
+}
+
+function orbLabel(type){
+switch(type){
+case "fluxFrenzy": return "FLUX FRENZY";
+case "clickFrenzy": return "CLICK FRENZY";
+case "orbStorm": return "ORB STORM";
+case "lucky": return "LUCKY";
+case "ruin": return "RUIN";
+case "buildingSpecial": return "BUILDING SPECIAL";
+default: return "";
+}
+}
+
+function showGolden(type){
+const container = $("golden-container");
+const el = $("golden");
+const label = $("golden-label");
+
+container.style.left = Math.max(10,Math.random()*(innerWidth-70))+"px";
+container.style.top = Math.max(70,Math.random()*(innerHeight-70))+"px";
+container.classList.add("show");
+state.lastGoldenSpawn = Date.now();
+state.orbType = type;
+label.textContent = orbLabel(type);
+
+el.style.transition = "none";
+el.style.transform = "scale(0.1)";
+el.style.opacity = "0";
+void el.offsetWidth;
+el.style.transition = "opacity 0.3s ease, transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)";
+el.style.transform = "scale(1)";
+el.style.opacity = "1";
+
+const duration = state.storePurchases["golden2"] ? 14000 : 10000;
+
+clearTimeout(growTimer);
+growTimer = setTimeout(() => {
+el.style.transition = "opacity 0.5s ease, transform 2.5s ease-in";
+el.style.transform = "scale(0.1)";
+el.style.opacity = "0";
+}, duration - 2500);
+
+clearTimeout(hideGoldenTimer);
+hideGoldenTimer = setTimeout(() => {
+container.classList.remove("show");
+clearInterval(trailInterval);
+state.orbType = null;
+}, duration);
+
+clearInterval(trailInterval);
+trailInterval = setInterval(() => {
+const trail = document.createElement("div");
+trail.className = "golden-trail";
+const rect = el.getBoundingClientRect();
+trail.style.left = (rect.left + rect.width/2 - 3 + (Math.random()*10-5)) + "px";
+trail.style.top = (rect.top + rect.height/2 - 3) + "px";
+document.body.appendChild(trail);
+setTimeout(() => trail.remove(), 600);
+}, 100);
+}
+
+function spawnGolden(){
+const baseDelay = state.storePurchases["golden"] ? 180000 : 300000; // 3 min or 5 min
+const randomExtra = Math.random() * baseDelay;
+goldenTimer = setTimeout(spawnGolden, randomExtra + baseDelay);
+
+const type = getOrbType();
+if (type === "orbStorm") {
+startOrbStorm();
+} else {
+showGolden(type);
+}
+}
+
+function startOrbStorm(){
+const chainLength = 5 + Math.floor(Math.random() * 11); // 5-15
+state.orbStormActive = true;
+state.orbChain = 0;
+state.orbChainReward = 0;
+let step = 0;
+const baseReward = 0.7;
+
+function spawnNextStormOrb(){
+if (!state.orbStormActive || step >= chainLength) {
+// end of storm, bank reward
+if (state.orbChainReward > 0) {
+addFlux(state.orbChainReward);
+notify(`ORB STORM ENDED · +${fmt(state.orbChainReward)} FLUX`);
+logEvent(`Orb Storm: banked ${fmt(state.orbChainReward)} Flux.`);
+}
+state.orbStormActive = false;
+state.orbChain = 0;
+state.orbChainReward = 0;
+clearInterval(trailInterval);
+$("golden-container").classList.remove("show");
+return;
+}
+
+const container = $("golden-container");
+const el = $("golden");
+const label = $("golden-label");
+container.style.left = Math.max(10,Math.random()*(innerWidth-70))+"px";
+container.style.top = Math.max(70,Math.random()*(innerHeight-70))+"px";
+container.classList.add("show");
+state.lastGoldenSpawn = Date.now();
+state.orbType = "orbStorm";
+label.textContent = `ORB STORM ×${step+1}`;
+
+el.style.transition = "none";
+el.style.transform = "scale(0.1)";
+el.style.opacity = "0";
+void el.offsetWidth;
+el.style.transition = "opacity 0.3s ease, transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)";
+el.style.transform = "scale(1)";
+el.style.opacity = "1";
+
+const lifetime = 1500; // 1.5 sec per orb
+clearTimeout(hideGoldenTimer);
+hideGoldenTimer = setTimeout(() => {
+// broke the chain
+if (state.orbStormActive && state.orbChainReward > 0) {
+addFlux(state.orbChainReward);
+notify(`ORB STORM ENDED · +${fmt(state.orbChainReward)} FLUX`);
+logEvent(`Orb Storm: banked ${fmt(state.orbChainReward)} Flux.`);
+}
+state.orbStormActive = false;
+state.orbChain = 0;
+state.orbChainReward = 0;
+container.classList.remove("show");
+clearInterval(trailInterval);
+}, lifetime);
+
+clearInterval(trailInterval);
+trailInterval = setInterval(() => {
+const trail = document.createElement("div");
+trail.className = "golden-trail";
+const rect = el.getBoundingClientRect();
+trail.style.left = (rect.left + rect.width/2 - 3 + (Math.random()*10-5)) + "px";
+trail.style.top = (rect.top + rect.height/2 - 3) + "px";
+document.body.appendChild(trail);
+setTimeout(() => trail.remove(), 600);
+}, 100);
+
+step++;
+if (step < chainLength) {
+const t = setTimeout(spawnNextStormOrb, lifetime + 200);
+orbStormTimers.push(t);
+}
+}
+spawnNextStormOrb();
+}
+
+$("golden").addEventListener("click",()=>{
+const container = $("golden-container");
+const type = state.orbType;
+state.goldenClicks++;
+if (Date.now() - state.lastGoldenSpawn < 2000) state.fastGoldenClick = true;
+state.frenzyActivations++;
+
+if (type === "orbStorm") {
+// Storm reward progression: 0.7, 7, 7000, 7000000, ...
+const step = state.orbChain;
+const reward = 0.7 * Math.pow(10000, step);
+state.orbChainReward += reward;
+state.orbChain++;
+notify(`ORB STORM ×${state.orbChain} · +${fmt(reward)}`);
+playGoldenChime();
+checkAchievements();
+return;
+}
+
+container.classList.remove("show");
+clearTimeout(hideGoldenTimer);
+clearTimeout(growTimer);
+clearInterval(trailInterval);
+
+if (type === "fluxFrenzy") {
+frenzy = 7; frenzyLeft = 15;
+$("core").classList.add("frenzy");
+playGoldenChime();
+notify("FLUX FRENZY · 7× TOWER PRODUCTION FOR 15s");
+} else if (type === "clickFrenzy") {
+clickFrenzy = 7; clickFrenzyLeft = 15;
+$("core").classList.add("frenzy");
+playGoldenChime();
+notify("CLICK FRENZY · 7× CLICK POWER FOR 15s");
+} else if (type === "lucky") {
+const reward = Math.max(100, fluxRate() * 15 * 60);
+addFlux(reward);
+playGoldenChime();
+notify(`LUCKY · +${fmt(reward)} FLUX`);
+logEvent(`Lucky orb: +${fmt(reward)} Flux.`);
+} else if (type === "ruin") {
+towerBoost = 0.9; towerBoostLeft = 30;
+notify("RUIN · -10% PRODUCTION FOR 30s");
+} else if (type === "buildingSpecial") {
+const types = ["flux", "cash"];
+const t = types[Math.floor(Math.random() * types.length)];
+buildingSpecial = { type: t };
+buildingSpecialLeft = 20;
+playGoldenChime();
+notify(`BUILDING SPECIAL · 10× ${t.toUpperCase()} FOR 20s`);
+}
+
+state.orbType = null;
+checkAchievements();
+});
+
+// First orb after 90-150 seconds
+setTimeout(() => {
+const type = getOrbType();
+if (type === "orbStorm") {
+startOrbStorm();
+} else {
+showGolden(type);
+}
+}, 90000);
+
+/* =============================================================
+MAIN LOOP
+============================================================= */
+offlineEarnings();
+render();
+renderAchievements();
+
+// Check for pending offline box on load
+if (state.pendingOfflineFlux > 0 && !state.offlineBoxShown) {
+state.offlineBoxShown = true;
+showOfflineBox(60, state.pendingOfflineFlux);
+}
+
+function loop(now){
+const dt=Math.min((now-lastFrame)/1000,1);lastFrame=now;
+state.playTime = (state.playTime || 0) + dt;
+if (!sound) state.mutedTime = (state.mutedTime || 0) + dt;
+
+addFlux(fluxRate()*dt);
+addCash(cashRate()*dt);
+
+if (state.storePurchases["auto2"]) { addFlux(clickPower()*5*dt); state.clicks += 5*dt; }
+else if (state.storePurchases["auto"]) { addFlux(clickPower()*dt); state.clicks += dt; }
+
+// orb effects
+if(frenzyLeft>0){
+frenzyLeft-=dt;
+if(frenzyLeft<=0){
+frenzy=1;
+$("core").classList.remove("frenzy");
+}
+}
+if(clickFrenzyLeft>0){
+clickFrenzyLeft-=dt;
+if(clickFrenzyLeft<=0){
+clickFrenzy=1;
+$("core").classList.remove("frenzy");
+}
+}
+if(towerBoostLeft>0){
+towerBoostLeft-=dt;
+if(towerBoostLeft<=0){
+towerBoost=1;
+}
+}
+if(buildingSpecialLeft>0){
+buildingSpecialLeft-=dt;
+if(buildingSpecialLeft<=0){
+buildingSpecial=null;
+}
+}
+
+// combo timer
+if (state.comboTimer > 0) {
+state.comboTimer -= dt;
+if (state.comboTimer <= 0) state.comboCount = 0;
+}
+
+const hour = new Date().getHours();
+const day = new Date().getDay();
+if (hour >= 0 && hour < 4) state.nightOwl = true;
+if (hour >= 5 && hour < 8) state.earlyBird = true;
+if (day === 0 || day === 6) state.weekendPlayed = true;
+
+renderSmoothNumbers();
+
+bgFrameCount++;
+if (bgFrameCount % 3 === 0) {
+drawStars(now);
+shootTimer+=dt*3;
+if(shootTimer>2.2+Math.random()*2.5){
+shootTimer=0;
+if(Math.random()<0.65) spawnShootingStar();
+}
+drawShooting(dt*3);
+}
+
+if(now-lastRender>350){
+render();
+checkAchievements();
+lastRender=now;
+}
+if(now-lastSave>4000){save();lastSave=now}
+requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+document.addEventListener("visibilitychange",()=>{if(document.hidden)save()});
+addEventListener("beforeunload",save);
+</script>
+</body>
+</html>
