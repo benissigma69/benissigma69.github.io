@@ -1,0 +1,2425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0d0a14">
+<title>SWIRL - Fortune Lab</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M12 2v20M2 12h20'/><circle cx='12' cy='12' r='3'/><circle cx='12' cy='12' r='6' stroke='%23a47aff'/></svg>">
+<style>
+:root{
+--bg:#0d0a14;--panel:rgba(30,24,44,.7);--line:rgba(255,215,0,.15);
+--text:#fdf6e3;--muted:#a898b8;
+--gold:#ffd700;--gold2:#ffb800;--amber:#ff9500;--copper:#cd7f32;
+--purple:#a47aff;--purple2:#7c4dff;--violet:#8b5cf6;
+--green:#70efb4;--pink:#ff5b9d;--red:#ff4757;--cyan:#35e5f3;
+--accent:#ffd700;--accent2:#a47aff;
+--font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box}
+html{cursor: none !important;}
+body{
+margin:0;min-height:100vh;color:var(--text);overflow-x:hidden;
+font-family:var(--font-main);
+background:
+radial-gradient(ellipse at 12% 8%,rgba(164,122,255,.15),transparent 38%),
+radial-gradient(ellipse at 88% 82%,rgba(255,215,0,.1),transparent 40%),var(--bg);
+cursor: none !important;
+transition: background 0.3s ease;
+}
+button, a, input, select, textarea, dialog, .game-card, .small-button, .brand, #enter-btn, .tab, .mini-btn, .stat-block, .leaderboard-row, .game-area, .target, .mem-cell, .clickpad, .num-input, .rank-btn, .spin-btn, .bet-btn, .chip {cursor:none !important}
+dialog, dialog * {cursor:auto !important}
+dialog button {cursor:pointer !important}
+dialog[open] ~ #cursor-dot, body.dialog-open #cursor-dot {z-index:2147483647 !important}
+
+button{font:inherit; font-family: var(--font-main);}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+/* CURSOR */
+#cursor-dot {
+position: fixed; top: 0; left: 0; width: 10px; height: 10px;
+background: var(--accent); border-radius: 50%;
+pointer-events: none; z-index: 99999;
+transform: translate(-50%, -50%);
+box-shadow: 0 0 12px var(--accent);
+transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+will-change: transform, left, top;
+}
+body.cursor-hover #cursor-dot { background: var(--purple); box-shadow: 0 0 18px var(--purple); }
+body:active #cursor-dot { background: var(--gold); box-shadow: 0 0 16px var(--gold); }
+
+
+/* BACKGROUND */
+#stars{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#shooting{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.aurora{position:fixed;width:500px;height:500px;border-radius:50%;filter:blur(140px);opacity:.12;pointer-events:none;z-index:0;animation:drift 22s ease-in-out infinite alternate}
+.aurora.a{left:-200px;top:-150px;background:var(--purple)}
+.aurora.b{right:-200px;bottom:-150px;background:var(--gold);animation-delay:-11s}
+@keyframes drift{to{transform:translate(100px,80px) scale(1.2)}}
+
+.clock { position: fixed; bottom: 20px; right: 24px; color: rgba(255,215,0,0.35); font-size: 11px; font-weight: 800; letter-spacing: 1px; font-variant-numeric: tabular-nums; z-index: 50; pointer-events: none; }
+
+/* LANDING */
+#landing { position: fixed; inset: 0; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); transition: opacity 0.8s ease, visibility 0.8s ease; }
+#landing.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+#landing h1 { font-size: clamp(40px, 10vw, 80px); font-weight: 1000; letter-spacing: -4px; background: linear-gradient(135deg, var(--gold), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0 0 10px; text-align: center; filter: drop-shadow(0 0 30px rgba(255,215,0,0.4)); }
+#landing p { color: var(--muted); font-size: 12px; letter-spacing: 3px; margin-bottom: 40px; text-align: center; }
+#enter-btn { padding: 16px 48px; border: 2px solid var(--gold); border-radius: 12px; background: transparent; color: var(--gold); font-size: 14px; font-weight: 950; letter-spacing: 4px; transition: all 0.3s ease; }
+#enter-btn:hover { background: rgba(255,215,0,.1); box-shadow: 0 0 40px rgba(255,215,0,.4); transform: scale(1.05); }
+#enter-btn:active { transform: scale(0.98); }
+
+/* APP */
+.app{position:relative;z-index:2;width:min(1240px,100%);margin:auto;padding:24px 20px 60px;}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:950;letter-spacing:3px}
+.brand svg{width:24px;height:24px; filter: drop-shadow(0 0 8px rgba(255,215,0,0.5));}
+.brand span{color:var(--gold)}
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.small-button{padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:rgba(255,215,0,.04);color:var(--muted);font-size:9px;letter-spacing:1px;font-weight:900;transition: all 0.2s;display:flex;align-items:center;gap:6px}
+.small-button svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.small-button:hover{color:var(--gold);border-color:var(--gold);transform:translateY(-1px)}
+
+/* RANK BUTTON */
+.rank-btn{background:linear-gradient(135deg, rgba(255,215,0,.1), rgba(164,122,255,.08)); border-color:var(--gold); color:var(--gold); position:relative; overflow:hidden;}
+.rank-btn:hover{color:white; border-color:var(--gold); box-shadow:0 0 15px rgba(255,215,0,.4);}
+.rank-btn svg{fill:var(--gold); stroke:none;}
+
+/* PROFILE TITLE */
+.profile-title { font-size: 11px; color: var(--gold); letter-spacing: 1px; margin-top: 4px; font-weight: 900; text-transform: uppercase; display:flex; align-items:center; gap:4px;}
+.profile-title svg { width: 12px; height: 12px; fill: var(--gold); }
+
+/* LIVE VIEWERS */
+.live-ticker { display: flex; align-items: center; gap: 6px; font-size: 9px; font-weight: 900; color: var(--purple); background: rgba(164,122,255,.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(164,122,255,.3); margin-left: 12px; }
+.live-dot { width: 6px; height: 6px; background: var(--purple); border-radius: 50%; animation: pulseLive 1s infinite alternate; }
+@keyframes pulseLive { from { opacity: 0.4; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); box-shadow: 0 0 10px var(--purple); } }
+
+/* WALLET */
+.wallet { display:flex; align-items:center; gap:8px; padding:8px 16px; border:1px solid var(--gold); border-radius:12px; background:linear-gradient(135deg, rgba(255,215,0,.1), rgba(164,122,255,.06)); box-shadow:0 0 20px rgba(255,215,0,.15); }
+.wallet-icon { font-size:18px; filter: drop-shadow(0 0 6px rgba(255,215,0,.6)); }
+.wallet-amount { font-size:16px; font-weight:1000; color:var(--gold); letter-spacing:1px; font-variant-numeric:tabular-nums; }
+.wallet-label { font-size:8px; color:var(--muted); font-weight:900; letter-spacing:1.5px; }
+
+/* DAILY GOAL */
+.daily-goal{position:relative;overflow:hidden;margin-bottom:20px;padding:18px 22px;border:1px solid rgba(255,215,0,.3);border-radius:16px;background:linear-gradient(105deg,rgba(255,215,0,.08),rgba(164,122,255,.06));box-shadow:0 14px 40px #0002}
+.daily-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.daily-title{font-size:10px;font-weight:950;letter-spacing:2px;color:var(--gold)}
+.daily-desc{color:var(--muted);font-size:10px;letter-spacing:.5px;margin-top:4px;line-height:1.5}
+.daily-desc b{color:var(--text)}
+.daily-progress-bar{height:8px;margin-top:12px;overflow:hidden;border-radius:9px;background:rgba(255,255,255,.08)}
+.daily-progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--purple));transition:width .6s cubic-bezier(0.2,0.8,0.2,1);box-shadow:0 0 12px rgba(255,215,0,.4)}
+.daily-meta{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:8px;font-weight:800;letter-spacing:1.5px}
+.daily-meta b{color:var(--gold)}
+.daily-complete{color:var(--green)!important}
+
+/* HERO */
+.hero{position:relative;overflow:hidden;margin-bottom:22px;padding:34px 28px;border:1px solid var(--line);border-radius:20px;background:var(--panel);backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow:0 20px 65px #0005;}
+.hero:after{content:"";position:absolute;right:-130px;top:-235px;width:440px;height:440px;border:1px solid rgba(164,122,255,.15);border-radius:50%;box-shadow:0 0 0 30px rgba(164,122,255,.03),0 0 0 65px rgba(255,215,0,.03);pointer-events:none}
+.hero-title{position:relative;z-index:1;font-size:clamp(28px,5vw,44px);font-weight:1000;letter-spacing:-2px;margin:0 0 8px;color:var(--text)}
+.hero-title span{background:linear-gradient(135deg,var(--gold),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{position:relative;z-index:1;color:var(--muted);font-size:12px;letter-spacing:1px;line-height:1.6;max-width:600px}
+.hero-stats{position:relative;z-index:1;display:flex;gap:24px;margin-top:22px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column;gap:4px}
+.hero-stat small{color:var(--muted);font-size:8px;font-weight:900;letter-spacing:2px}
+.hero-stat b{color:var(--gold);font-size:22px;font-weight:1000;letter-spacing:-1px}
+.hero-stat b.gold{color:var(--gold)}
+
+/* SECTION */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 4px}
+.section-title{font-size:11px;font-weight:950;letter-spacing:3px;color:var(--muted)}
+.section-title span{color:var(--gold)}
+
+/* GAME GRID */
+.game-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:26px; perspective: 1000px;}
+.game-card{position:relative;padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 14px 40px #0002;transition:transform 0.1s ease, border-color 0.3s, box-shadow 0.3s;overflow:hidden;text-align:left; transform-style: preserve-3d;}
+.game-card::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent 0%,transparent 60%,rgba(255,215,0,0.04) 100%);opacity:0;transition:opacity .3s;pointer-events:none}
+.game-card:hover::before{opacity:1}
+.game-icon{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;margin-bottom:14px;border:1px solid rgba(255,215,0,.3);background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(164,122,255,.1));color:var(--gold);transition:transform .3s;font-size:22px;}
+.game-card:hover .game-icon{transform:scale(1.08) rotate(-3deg)}
+.game-icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.game-name{font-size:15px;font-weight:950;letter-spacing:1px;margin:0 0 6px;color:var(--text)}
+.game-desc{color:var(--muted);font-size:10px;line-height:1.55;margin:0 0 14px;min-height:46px}
+.game-meta{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px}
+.game-meta-col{display:flex;flex-direction:column;gap:2px}
+.game-meta-col small{color:var(--muted);font-size:7px;font-weight:900;letter-spacing:1.5px}
+.game-meta-col b{color:var(--gold);font-size:13px;font-weight:1000;letter-spacing:-0.3px}
+.game-meta-col b.gold{color:var(--gold)}
+.game-meta-col b.muted{color:var(--muted);font-weight:900}
+.game-best{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--line);gap:10px}
+.game-play{padding:7px 14px;border:1px solid var(--gold);border-radius:8px;background:rgba(255,215,0,0.08);color:var(--gold);font-size:8px;font-weight:950;letter-spacing:1.5px;transition:.2s;white-space:nowrap}
+.game-card:hover .game-play{background:var(--gold);color:#0d0a14;box-shadow:0 0 20px rgba(255,215,0,.4)}
+
+/* SPECIFIC HOVER COLORS */
+.game-card[data-game="plinko"]:hover { border-color: var(--gold); box-shadow: 0 20px 50px rgba(255,215,0,0.2); }
+.game-card[data-game="crash"]:hover { border-color: var(--amber); box-shadow: 0 20px 50px rgba(255,150,0,0.2); }
+.game-card[data-game="dice"]:hover { border-color: var(--cyan); box-shadow: 0 20px 50px rgba(53,229,243,0.2); }
+.game-card[data-game="mines"]:hover { border-color: var(--pink); box-shadow: 0 20px 50px rgba(255,91,157,0.2); }
+.game-card[data-game="wheel"]:hover { border-color: var(--green); box-shadow: 0 20px 50px rgba(112,239,180,0.2); }
+.game-card[data-game="slots"]:hover { border-color: var(--gold2); box-shadow: 0 20px 50px rgba(255,184,0,0.2); }
+.game-card[data-game="keno"]:hover { border-color: var(--copper); box-shadow: 0 20px 50px rgba(205,127,50,0.2); }
+.game-card[data-game="blackjack"]:hover { border-color: var(--purple); box-shadow: 0 20px 50px rgba(164,122,255,0.2); }
+
+/* ACHIEVEMENTS MINI */
+.ach-mini{display:flex;gap:5px;flex-wrap:wrap}
+.ach-badge{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.05);border:1px solid var(--line);display:grid;place-items:center;transition:.2s;position:relative}
+.ach-badge svg{width:11px;height:11px;fill:none;stroke:var(--muted);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.ach-badge.unlocked{background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(164,122,255,.15));border-color:var(--gold);box-shadow:0 0 12px rgba(255,215,0,.35)}
+.ach-badge.unlocked svg{stroke:var(--gold);opacity:1;fill:var(--gold)}
+.ach-badge.tier-bronze{background:linear-gradient(135deg,rgba(205,127,50,.25),rgba(180,100,40,.15));border-color:#cd7f32}
+.ach-badge.tier-bronze svg{stroke:#cd7f32;fill:#cd7f32;opacity:1}
+.ach-badge.tier-silver{background:linear-gradient(135deg,rgba(192,192,192,.25),rgba(160,160,160,.15));border-color:#c0c0c0}
+.ach-badge.tier-silver svg{stroke:#c0c0c0;fill:#c0c0c0;opacity:1}
+.ach-badge.tier-gold{background:linear-gradient(135deg,rgba(255,215,0,.3),rgba(255,180,0,.2));border-color:#ffd700;box-shadow:0 0 14px rgba(255,215,0,.4)}
+.ach-badge.tier-gold svg{stroke:#ffd700;fill:#ffd700;opacity:1}
+.ach-badge.tier-platinum{background:linear-gradient(135deg,rgba(164,122,255,.35),rgba(124,77,255,.25));border-color:#a47aff;box-shadow:0 0 16px rgba(164,122,255,.5)}
+.ach-badge.tier-platinum svg{stroke:#a47aff;fill:#a47aff;opacity:1}
+
+/* GAME SCREEN */
+#game-screen{position:fixed;inset:0;z-index:500;background:var(--bg);display:none;flex-direction:column; touch-action: none;}
+#game-screen.active{display:flex}
+#game-screen .game-bg{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(255,215,0,.08),transparent 60%);pointer-events:none; transition: background 0.2s ease;}
+.gs-header{position:relative;z-index:2;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line)}
+.gs-back{padding:9px 16px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.03);color:var(--muted);font-size:9px;font-weight:900;letter-spacing:1.5px;transition:.2s;display:flex;align-items:center;gap:6px}
+.gs-back:hover{color:var(--gold);border-color:var(--gold)}
+.gs-title{font-size:13px;font-weight:950;letter-spacing:2.5px;color:var(--text)}
+.gs-title span{color:var(--gold)}
+.gs-body{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;overflow:auto; touch-action: none;}
+.gs-hint{color:var(--muted);font-size:11px;letter-spacing:2px;font-weight:800;margin-bottom:24px;line-height:1.5;max-width:600px}
+.gs-hint b{color:var(--gold)}
+
+/* BET CONTROLS */
+.bet-controls { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; justify-content:center; }
+.bet-btn { padding:10px 18px; border:1px solid var(--gold); border-radius:10px; background:rgba(255,215,0,.08); color:var(--gold); font-size:10px; font-weight:950; letter-spacing:1.5px; transition:.2s; }
+.bet-btn:hover { background:var(--gold); color:#0d0a14; box-shadow:0 0 20px rgba(255,215,0,.4); }
+.bet-btn:disabled { opacity:.3; pointer-events:none; }
+.bet-input { padding:12px 16px; width:120px; border:2px solid var(--line); border-radius:10px; background:rgba(255,255,255,.03); color:var(--gold); font-size:16px; font-weight:950; text-align:center; font-family:var(--font-main); transition:.2s; outline:none; }
+.bet-input:focus { border-color:var(--gold); box-shadow:0 0 20px rgba(255,215,0,.2); }
+.bet-amount-display { font-size:22px; font-weight:1000; color:var(--gold); letter-spacing:1px; min-width:80px; }
+.chip { width:44px; height:44px; border-radius:50%; border:2px dashed var(--gold); background:linear-gradient(135deg, rgba(255,215,0,.15), rgba(164,122,255,.1)); color:var(--gold); font-size:11px; font-weight:1000; display:grid; place-items:center; transition:.15s; }
+.chip:hover { transform:scale(1.1); box-shadow:0 0 16px rgba(255,215,0,.4); }
+.chip:active { transform:scale(0.95); }
+
+/* PLINKO */
+.plinko-board { position:relative; width:min(360px,90vw); height:min(400px,90vw); margin:0 auto; }
+.plinko-canvas { width:100%; height:100%; display:block; }
+.plinko-result { font-size:28px; font-weight:1000; color:var(--gold); margin-top:16px; min-height:40px; letter-spacing:2px; }
+
+/* CRASH */
+.crash-multiplier { font-size:clamp(48px,14vw,96px); font-weight:1000; color:var(--gold); text-shadow:0 0 50px rgba(255,215,0,.5); font-variant-numeric:tabular-nums; letter-spacing:-2px; line-height:1; margin:10px 0; transition:color .2s; }
+.crash-multiplier.crashed { color:var(--red); text-shadow:0 0 50px rgba(255,71,87,.5); }
+.crash-graph { width:min(500px,92vw); height:180px; border:1px solid var(--line); border-radius:12px; background:rgba(0,0,0,.3); margin:0 auto; }
+
+/* DICE */
+.dice-container { display:flex; gap:20px; justify-content:center; margin:20px 0; }
+.die { width:80px; height:80px; border-radius:16px; border:2px solid var(--gold); background:linear-gradient(135deg, rgba(255,215,0,.15), rgba(164,122,255,.08)); display:grid; place-items:center; font-size:40px; transition:.3s; }
+.die.rolling { animation: diceRoll .5s ease; }
+@keyframes diceRoll { 0%{transform:rotate(0) scale(1)} 25%{transform:rotate(15deg) scale(1.1)} 50%{transform:rotate(-15deg) scale(1.1)} 75%{transform:rotate(10deg) scale(1.05)} 100%{transform:rotate(0) scale(1)} }
+
+/* MINES */
+.mines-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; width:min(400px,90vw); margin:0 auto; }
+.mine-cell { aspect-ratio:1; border-radius:10px; border:2px solid var(--line); background:linear-gradient(145deg, rgba(40,30,60,.8), rgba(20,15,30,.9)); display:grid; place-items:center; font-size:24px; transition:.15s; }
+.mine-cell:hover:not(.revealed) { border-color:var(--gold); background:linear-gradient(145deg, rgba(255,215,0,.12), rgba(20,15,30,.9)); }
+.mine-cell.revealed { border-color:var(--gold); background:rgba(255,215,0,.1); }
+.mine-cell.mine { border-color:var(--red); background:rgba(255,71,87,.2); }
+.mine-cell.safe { border-color:var(--green); background:rgba(112,239,180,.15); }
+
+/* WHEEL */
+.wheel-container { position:relative; width:min(320px,80vw); height:min(320px,80vw); margin:0 auto; }
+.wheel-svg { width:100%; height:100%; transition: transform 4s cubic-bezier(0.2,0.8,0.2,1); }
+.wheel-pointer { position:absolute; top:-10px; left:50%; transform:translateX(-50%); font-size:24px; filter:drop-shadow(0 0 8px var(--gold)); z-index:2; }
+
+/* SLOTS */
+.slots-container { display:flex; gap:16px; justify-content:center; margin:20px 0; }
+.slot-reel { width:90px; height:110px; border-radius:14px; border:2px solid var(--gold); background:linear-gradient(135deg, rgba(255,215,0,.1), rgba(164,122,255,.05)); display:grid; place-items:center; font-size:48px; overflow:hidden; }
+.slot-reel.spinning { animation: slotSpin .3s linear infinite; }
+@keyframes slotSpin { 0%{transform:translateY(0)} 100%{transform:translateY(-50%)} }
+
+/* KENO */
+.keno-grid { display:grid; grid-template-columns:repeat(10,1fr); gap:5px; width:min(500px,95vw); margin:0 auto; }
+.keno-cell { aspect-ratio:1; border-radius:6px; border:1px solid var(--line); background:rgba(255,255,255,.03); display:grid; place-items:center; font-size:11px; font-weight:900; color:var(--muted); transition:.15s; }
+.keno-cell.selected { border-color:var(--gold); background:rgba(255,215,0,.15); color:var(--gold); }
+.keno-cell.drawn { border-color:var(--amber); background:rgba(255,150,0,.25); color:white; }
+.keno-cell.hit { border-color:var(--green); background:rgba(112,239,180,.3); color:white; }
+
+/* BLACKJACK */
+.bj-table { width:min(600px,95vw); margin:0 auto; }
+.bj-hand { display:flex; gap:8px; justify-content:center; min-height:100px; align-items:center; margin:10px 0; }
+.bj-card { width:60px; height:88px; border-radius:8px; background:white; color:#0d0a14; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:1000; box-shadow:0 4px 12px rgba(0,0,0,.4); font-size:18px; }
+.bj-card.red { color:#d32f2f; }
+.bj-card.hidden { background:linear-gradient(135deg, #1a1a2e, #0d0a14); color:transparent; border:2px solid var(--line); }
+.bj-score { font-size:20px; font-weight:1000; color:var(--gold); }
+
+/* RESULTS */
+.results{position:fixed;inset:0;z-index:600;display:none;align-items:center;justify-content:center;background:rgba(13,10,20,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.results.active{display:flex;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.results-box{position:relative;overflow:hidden;max-width:480px;width:calc(100% - 30px);padding:36px 32px;border:1px solid var(--gold);border-radius:22px;background:linear-gradient(135deg,#1e182c,#0d0a14);box-shadow:0 30px 100px rgba(0,0,0,.9),0 0 80px rgba(255,215,0,.15);text-align:center;animation:popIn .4s cubic-bezier(0.175,0.885,0.32,1.275)}
+.results-box::after { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,215,0,0.08), transparent); transform: skewX(-25deg); animation: sweep 3s infinite; }
+@keyframes sweep { 0% { left: -100%; } 50%, 100% { left: 200%; } }
+@keyframes popIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+.results-title{font-size:11px;font-weight:950;letter-spacing:3px;color:var(--muted);margin-bottom:8px}
+.results-value{font-size:clamp(48px,12vw,72px);font-weight:1000;letter-spacing:-3px;color:var(--gold);line-height:1;margin:16px 0;text-shadow:0 0 50px rgba(255,215,0,.4);font-variant-numeric:tabular-nums}
+.results-value.gold{color:var(--gold);text-shadow:0 0 50px rgba(255,215,0,.5)}
+.results-value.win{color:var(--green);text-shadow:0 0 50px rgba(112,239,180,.5)}
+.results-value.lose{color:var(--red);text-shadow:0 0 50px rgba(255,71,87,.5)}
+.results-sub{color:var(--muted);font-size:12px;letter-spacing:1.5px;margin-bottom:12px;line-height:1.6}
+.results-sub b{color:var(--gold);font-weight:900}
+.results-rank{display:inline-block;padding:8px 20px;border-radius:20px;font-size:10px;font-weight:950;letter-spacing:2px;margin-bottom:20px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:var(--gold)}
+.results-rank.gold{background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.5);color:var(--gold)}
+.results-rank.pink{background:rgba(255,91,157,.1);border-color:rgba(255,91,157,.4);color:var(--pink)}
+.results-rank.green{background:rgba(112,239,180,.1);border-color:rgba(112,239,180,.4);color:var(--green)}
+.results-avg{margin-top:8px;color:var(--muted);font-size:10px;letter-spacing:1.5px}
+.results-avg b{color:var(--text)}
+.results-ach{margin-top:16px;padding:10px 16px;border-radius:10px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.3);color:var(--gold);font-size:10px;font-weight:900;letter-spacing:1.5px;text-align:left}
+.results-actions{display:flex;gap:10px;justify-content:center;margin-top:24px; position:relative; z-index:2;}
+.results-btn{padding:12px 26px;border:1px solid var(--gold);border-radius:10px;background:var(--gold);color:#0d0a14;font-size:10px;font-weight:950;letter-spacing:2px;transition:.2s}
+.results-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,215,0,.4)}
+.results-btn.secondary{background:transparent;color:var(--muted);border-color:var(--line)}
+.results-btn.secondary:hover{color:var(--text);border-color:var(--text);box-shadow:none}
+
+/* TOAST */
+.toast{position:fixed;z-index:700;left:50%;bottom:20px;transform:translate(-50%,12px);opacity:0;padding:10px 16px;border:1px solid var(--line);border-radius:9px;color:var(--gold);background:#1e182cf5;font-size:9px;letter-spacing:1px;transition:.2s;pointer-events:none;white-space:nowrap;box-shadow:0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(5px);font-weight:900}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ACH TOAST */
+.ach-toast{position:fixed;top:24px;right:24px;z-index:800;padding:14px 18px;border:1px solid var(--gold);border-radius:12px;background:linear-gradient(135deg,#2a2440,#1a1428);box-shadow:0 10px 40px rgba(255,215,0,.2),0 5px 20px rgba(0,0,0,.8);transform:translateX(120%);opacity:0;transition:transform .4s cubic-bezier(0.175,0.885,0.32,1.275),opacity .4s;display:flex;align-items:center;gap:12px;pointer-events:none;min-width:260px}
+.ach-toast.show{transform:translateX(0);opacity:1}
+.ach-toast-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,215,0,.15);color:var(--gold);display:grid;place-items:center;flex-shrink:0}
+.ach-toast-icon svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ach-toast-text{display:flex;flex-direction:column}
+.ach-toast-label{font-size:9px;color:var(--gold);font-weight:900;letter-spacing:1px;margin-bottom:2px}
+.ach-toast-name{font-size:12px;font-weight:950;color:white}
+
+/* DIALOG */
+dialog{width:min(440px,calc(100% - 30px));padding:0;border:1px solid var(--gold);border-radius:18px;color:var(--text);background:linear-gradient(135deg,#1e182c,#0d0a14);box-shadow:0 30px 100px rgba(0,0,0,.9),0 0 60px rgba(255,215,0,.15);z-index:900}
+dialog::backdrop{background:rgba(13,10,20,.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.dialog-inner{padding:26px}
+.dialog-title{font-size:13px;font-weight:950;letter-spacing:2.5px;color:var(--gold);margin-bottom:10px}
+.dialog-copy{color:var(--muted);font-size:11px;line-height:1.6;letter-spacing:.5px;margin-bottom:20px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px}
+.dialog-actions button{padding:11px 20px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.05);color:var(--text);font-size:9px;font-weight:950;letter-spacing:1.5px;transition:.2s}
+.dialog-actions button:hover{background:rgba(255,255,255,.1)}
+.dialog-actions .danger{border-color:var(--red);color:var(--red);background:rgba(255,71,87,.08)}
+.dialog-actions .danger:hover{background:var(--red);color:white}
+
+#ach-list{max-height:60vh;overflow-y:auto;padding-right:8px;scrollbar-width:thin;scrollbar-color:var(--gold) rgba(255,255,255,.06)}
+#ach-list::-webkit-scrollbar{width:8px}
+#ach-list::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:8px}
+#ach-list::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold),var(--purple));border-radius:8px}
+
+footer{margin-top:32px;text-align:center;color:rgba(255,215,0,.25);font-size:7px;letter-spacing:2px}
+
+@media(max-width:640px){
+header{gap:8px}
+.brand{font-size:10px}
+.gs-title{font-size:10px}
+.hero-stats{gap:16px}
+}
+@media(prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div id="cursor-dot"></div>
+
+<div id="landing">
+<h1>SWIRL</h1>
+<p>FORTUNE LAB</p>
+<button id="enter-btn" type="button">ENTER THE LAB</button>
+</div>
+
+<canvas id="stars" aria-hidden="true"></canvas>
+<canvas id="shooting" aria-hidden="true"></canvas>
+<div class="aurora a"></div><div class="aurora b"></div>
+
+<main class="app" id="app" style="opacity:0; transition: opacity 1s ease;">
+<header>
+<div class="brand">
+<svg viewBox="0 0 24 24" fill="none" stroke="url(#swirlGrad)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<defs>
+<linearGradient id="swirlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="var(--gold)" />
+<stop offset="100%" stop-color="var(--purple)" />
+</linearGradient>
+</defs>
+<circle cx="12" cy="12" r="10"/>
+<path d="M12 2v20M2 12h20"/>
+<circle cx="12" cy="12" r="3"/>
+<circle cx="12" cy="12" r="6" stroke="var(--purple)"/>
+</svg>
+<span>SWIRL</span> / FORTUNE LAB
+</div>
+<div class="header-actions">
+<span class="live-ticker"><span class="live-dot"></span><span id="live-viewers">2,417</span> TESTING</span>
+<div class="wallet" id="wallet-display">
+<span class="wallet-icon">✨</span>
+<div>
+<div class="wallet-amount" id="wallet-amount">1,000</div>
+<div class="wallet-label">FATE</div>
+</div>
+</div>
+<button class="small-button rank-btn" id="open-rank" type="button">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+<span id="rank-btn-text">BRONZE III</span>
+</button>
+<button class="small-button" id="open-achievements" type="button">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+DISCOVERIES
+</button>
+<button class="small-button" id="sound-toggle" type="button">
+<svg viewBox="0 0 24 24" id="sound-icon"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+SOUND ON
+</button>
+<button class="small-button" id="reset-stats" type="button">
+<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+RESET
+</button>
+</div>
+</header>
+
+<section class="daily-goal" id="daily-goal">
+<div class="daily-top">
+<div>
+<div class="daily-title" id="daily-title">✦ DAILY FORTUNE</div>
+<div class="daily-desc" id="daily-desc">Consult the oracle once per day for free Fate.</div>
+</div>
+<button class="bet-btn" id="open-spin" type="button" style="padding:12px 24px; font-size:11px;">🔮 DAILY FORTUNE</button>
+</div>
+<div class="daily-progress-bar"><div class="daily-progress-fill" id="daily-progress-fill"></div></div>
+<div class="daily-meta">
+<span id="daily-status">0 / 1 CONSULTED</span>
+<span id="daily-timer">RESETS IN --:--:--</span>
+</div>
+</section>
+
+<section class="hero">
+<h1 class="hero-title">Test your <span>fortune</span></h1>
+<div class="profile-title" id="profile-title">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+<span id="dynamic-title">THE SEEKER</span>
+</div>
+<p class="hero-sub" style="margin-top:8px">Eight fortune experiments. Real Fate on the line. Consult the oracle daily, climb the ranks, and uncover the secrets of probability itself.</p>
+<div class="hero-stats">
+<div class="hero-stat"><small>FATE</small><b id="stat-chips">1,000</b></div>
+<div class="hero-stat"><small>EXPERIMENTS</small><b id="stat-games">0</b></div>
+<div class="hero-stat"><small>BIGGEST FORTUNE</small><b class="gold" id="stat-bigwin">—</b></div>
+<div class="hero-stat"><small>ORACLE STREAK</small><b id="stat-streak">0</b></div>
+<div class="hero-stat"><small>NET FATE</small><b class="gold" id="stat-profit">—</b></div>
+</div>
+</section>
+
+<div class="section-head">
+<div class="section-title">FORTUNE EXPERIMENTS · <span id="ach-count">0 DISCOVERIES</span></div>
+</div>
+
+<div class="game-grid" id="game-grid">
+
+<button class="game-card" data-game="plinko" type="button">
+<div class="game-icon">🎯</div>
+<div class="game-name">Fate Drop</div>
+<p class="game-desc">Release a fated orb and watch it cascade through the lattice. Multipliers up to 100x await below.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>100x</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-plinko">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-plinko"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+<button class="game-card" data-game="crash" type="button">
+<div class="game-icon">🚀</div>
+<div class="game-name">Ascension</div>
+<p class="game-desc">Watch the fate multiplier climb. Extract before the collapse. Greed is the enemy of fortune.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>Unlimited</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-crash">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-crash"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+<button class="game-card" data-game="dice" type="button">
+<div class="game-icon">🎲</div>
+<div class="game-name">Fate Roll</div>
+<p class="game-desc">Predict the outcome. Roll above or below your chosen threshold. Pure probability.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>990x</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-dice">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-dice"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+<button class="game-card" data-game="mines" type="button">
+<div class="game-icon">💎</div>
+<div class="game-name">Hidden Caches</div>
+<p class="game-desc">Reveal safe caches to increase your yield. Extract before striking a void.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>500x</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-mines">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-mines"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+<button class="game-card" data-game="wheel" type="button">
+<div class="game-icon">🎡</div>
+<div class="game-name">Oracle's Wheel</div>
+<p class="game-desc">Spin the wheel of fate. Choose your risk level and let destiny decide.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>50x</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-wheel">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-wheel"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+<button class="game-card" data-game="slots" type="button">
+<div class="game-icon">🎰</div>
+<div class="game-name">Fate Reels</div>
+<p class="game-desc">Align the cosmic symbols. Three in a row summons a fortune.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>500x</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-slots">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-slots"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+<button class="game-card" data-game="keno" type="button">
+<div class="game-icon">🔢</div>
+<div class="game-name">Number Seer</div>
+<p class="game-desc">Mark your chosen numbers. The cosmos reveals 20. Match as many as fate allows.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>1000x</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-keno">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-keno"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+<button class="game-card" data-game="blackjack" type="button">
+<div class="game-icon">🃏</div>
+<div class="game-name">Fate's Hand</div>
+<p class="game-desc">Challenge the oracle to 21. Draw closer than fate itself.</p>
+<div class="game-meta">
+<div class="game-meta-col"><small>MAX FORTUNE</small><b>2.5x</b></div>
+<div class="game-meta-col" style="text-align:right"><small>TRIALS</small><b class="muted" id="played-blackjack">0</b></div>
+</div>
+<div class="game-best">
+<div class="ach-mini" id="ach-blackjack"></div>
+<span class="game-play">TEST</span>
+</div>
+</button>
+
+</div>
+
+<div class="daily-goal" style="margin-top: 20px;">
+<div class="daily-top">
+<div>
+<div class="daily-title" style="color:var(--gold)">🏆 RECENT DISCOVERIES</div>
+<div class="daily-desc" id="recent-ach-desc">Run an experiment to start discovering.</div>
+</div>
+</div>
+</div>
+
+<footer>FATE SAVES IN THIS BROWSER · FORTUNE IS A TEST, NOT A DESTINY · PRESS ESC OR CLICK "LEAVE" TO EXIT AN EXPERIMENT</footer>
+</main>
+
+<div id="game-screen">
+<div class="game-bg" id="game-bg"></div>
+<div class="gs-header">
+<button class="gs-back" id="gs-back" type="button">
+<svg viewBox="0 0 24 24" style="width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+LEAVE
+</button>
+<div class="gs-title" id="gs-title">FATE DROP</div>
+<div style="width:100px"></div>
+</div>
+<div class="gs-body" id="gs-body"></div>
+</div>
+
+<!-- DAILY FORTUNE DIALOG -->
+<dialog id="spin-dialog" aria-labelledby="spin-title">
+<div class="dialog-inner" style="text-align:center;">
+<div class="dialog-title" id="spin-title" style="color:var(--gold)">🔮 DAILY FORTUNE</div>
+<div class="dialog-copy">Consult the oracle once per day. The wheel grants Fate to those who seek.</div>
+<div class="wheel-container" style="margin:20px auto;">
+<div class="wheel-pointer">▼</div>
+<svg class="wheel-svg" id="bonus-wheel" viewBox="0 0 200 200">
+<g id="wheel-groups"></g>
+<circle cx="100" cy="100" r="95" fill="none" stroke="var(--gold)" stroke-width="3"/>
+<circle cx="100" cy="100" r="15" fill="var(--gold)"/>
+<text x="100" y="105" text-anchor="middle" font-size="12" font-weight="900" fill="#0d0a14">✨</text>
+</svg>
+</div>
+<div id="spin-result" style="font-size:20px;font-weight:1000;color:var(--gold);min-height:30px;letter-spacing:1px;margin-bottom:16px;"></div>
+<div class="dialog-actions" style="justify-content:center">
+<button id="do-spin" type="button" style="cursor:pointer;border-color:var(--gold);color:var(--gold);background:rgba(255,215,0,.1);font-weight:950;">CONSULT</button>
+<button id="close-spin" type="button" style="cursor:pointer">CLOSE</button>
+</div>
+</div>
+</dialog>
+
+<!-- RANK DIALOG -->
+<dialog id="rank-dialog" aria-labelledby="rank-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="rank-title" style="color:var(--gold)">YOUR RANK</div>
+<div class="dialog-copy">Earn discoveries to level up your rank. Higher tiers unlock exclusive badges.</div>
+<div id="rank-display" style="text-align:center; margin-bottom:20px;">
+<div style="font-size:40px; margin-bottom:10px; filter: drop-shadow(0 0 20px var(--gold));">🔮</div>
+<div style="font-size:24px; font-weight:1000; color:var(--gold); letter-spacing:2px;" id="rank-name">BRONZE III</div>
+<div style="font-size:10px; color:var(--muted); margin-top:4px;" id="rank-score">0 / 100 PTS</div>
+<div style="height:6px; background:rgba(255,255,255,0.1); border-radius:3px; margin-top:10px; overflow:hidden;">
+<div style="height:100%; width:0%; background:var(--gold); border-radius:3px; transition:width 0.5s;" id="rank-progress"></div>
+</div>
+</div>
+<div class="dialog-actions" style="justify-content:center">
+<button id="close-rank" type="button" style="cursor:pointer">CLOSE</button>
+</div>
+</div>
+</dialog>
+
+<dialog id="ach-dialog" aria-labelledby="ach-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="ach-title">DISCOVERIES</div>
+<div class="dialog-copy">Earn badges by hitting milestones. Bronze, silver, gold, and platinum tiers.</div>
+<div id="ach-list"></div>
+<div class="dialog-actions" style="margin-top:18px">
+<button id="close-ach" type="button" style="cursor:pointer">CLOSE</button>
+</div>
+</div>
+</dialog>
+
+<dialog id="reset-dialog" aria-labelledby="reset-title">
+<div class="dialog-inner">
+<div class="dialog-title" id="reset-title" style="color:var(--red)">RESET EVERYTHING?</div>
+<div class="dialog-copy">This will permanently delete all your Fate, discoveries, and daily progress. You'll start fresh with 1,000 Fate. This cannot be undone.</div>
+<div class="dialog-actions">
+<button id="cancel-reset" type="button" style="cursor:pointer">CANCEL</button>
+<button id="confirm-reset" class="danger" type="button" style="cursor:pointer">RESET ALL</button>
+</div>
+</div>
+</dialog>
+
+<div class="results" id="results">
+<div class="results-box" id="results-box">
+<div class="results-title" id="results-title">EXPERIMENT RESULT</div>
+<div class="results-value" id="results-value">—</div>
+<div class="results-rank" id="results-rank">—</div>
+<div class="results-sub" id="results-sub">—</div>
+<div class="results-avg" id="results-avg"></div>
+<div class="results-ach" id="results-ach" style="display:none"></div>
+<div class="results-actions">
+<button class="results-btn" id="results-again" type="button">RUN AGAIN</button>
+<button class="results-btn secondary" id="results-exit" type="button">EXIT</button>
+</div>
+</div>
+</div>
+
+<div class="ach-toast" id="ach-toast">
+<div class="ach-toast-icon">
+<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+</div>
+<div class="ach-toast-text">
+<div class="ach-toast-label">DISCOVERY UNLOCKED</div>
+<div class="ach-toast-name" id="ach-toast-name">—</div>
+</div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="clock" id="clock">00:00:00</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const SAVE_KEY="swirl_fortune_lab_v1";
+
+/* CURSOR & TILT */
+const cursorDot=$("cursor-dot");
+document.addEventListener("mousemove",e=>{
+cursorDot.style.left=e.clientX+"px";
+cursorDot.style.top=e.clientY+"px";
+
+document.querySelectorAll(".game-card").forEach(card => {
+const rect = card.getBoundingClientRect();
+const x = e.clientX - rect.left;
+const y = e.clientY - rect.top;
+if (x > 0 && x < rect.width && y > 0 && y < rect.height) {
+const centerX = rect.width / 2;
+const centerY = rect.height / 2;
+const rotateX = ((y - centerY) / centerY) * -5;
+const rotateY = ((x - centerX) / centerX) * 5;
+card.style.transform = `translateY(-4px) scale(1.02) perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+} else {
+card.style.transform = "";
+}
+});
+},true);
+
+document.addEventListener("mouseover",e=>{
+if(e.target.closest("button, a, .game-card, .small-button, .target, .mem-cell, .clickpad, .num-input, .bet-btn, .chip, .results-btn, .daily-goal, .review-btn, .wheel-container, .die, .slot-reel, .keno-cell, .mine-cell, .bj-card, .plinko-board")){
+document.body.classList.add("cursor-hover");
+}
+});
+document.addEventListener("mouseout",e=>{
+if(e.target.closest("button, a, .game-card, .small-button, .target, .mem-cell, .clickpad, .num-input, .bet-btn, .chip, .results-btn, .daily-goal, .review-btn, .wheel-container, .die, .slot-reel, .keno-cell, .mine-cell, .bj-card, .plinko-board")){
+document.body.classList.remove("cursor-hover");
+}
+});
+
+function updateDialogCursorState(){
+const anyOpen=!!document.querySelector("dialog[open]");
+document.body.classList.toggle("dialog-open",anyOpen);
+}
+const dialogObserver=new MutationObserver(updateDialogCursorState);
+document.querySelectorAll("dialog").forEach(d=>dialogObserver.observe(d,{attributes:true,attributeFilter:["open"]}));
+updateDialogCursorState();
+
+/* LIVE VIEWER TICKER */
+setInterval(() => {
+let current = parseInt($("live-viewers").textContent.replace(/,/g, ''));
+let change = Math.floor(Math.random() * 21) - 10;
+let newVal = Math.max(800, current + change);
+$("live-viewers").textContent = newVal.toLocaleString();
+}, 3000);
+
+/* LANDING */
+$("enter-btn").addEventListener("click",()=>{
+$("landing").classList.add("hidden");
+setTimeout(()=>{$("app").style.opacity="1";},100);
+sound("enter");
+});
+
+/* CLOCK */
+function updateClock(){
+const d=new Date();
+$("clock").textContent=`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+setInterval(updateClock,1000);updateClock();
+
+/* SOUND */
+let audio=null,soundOn=true;
+function sound(type){
+if(!soundOn)return;
+try{
+const C=window.AudioContext||window.webkitAudioContext;if(!C)return;
+audio||=new C();if(audio.state==="suspended")audio.resume();
+const now=audio.currentTime;
+const cfg={
+enter:[300,600,.15,.03],
+click:[440,220,.06,.02],
+success:[520,1040,.18,.05],
+fail:[300,140,.28,.06],
+tick:[800,800,.05,.018],
+go:[600,1200,.22,.06],
+beep:[900,900,.1,.03],
+rankup:[400,1200,.4,.08],
+win:[400,1600,.35,.08],
+lose:[300,100,.4,.06],
+chip:[600,800,.1,.03],
+crash:[200,50,.5,.08],
+mystic:[500,900,.4,.06]
+}[type]||[440,440,.1,.02];
+const[sf,ef,dur,vol]=cfg;
+const o=audio.createOscillator(),g=audio.createGain();
+o.type=type==="fail"||type==="crash"?"sawtooth":type==="rankup"||type==="mystic"?"triangle":"sine";
+o.frequency.setValueAtTime(sf,now);
+if(type!=="tick"&&type!=="beep"&&type!=="chip")o.frequency.exponentialRampToValueAtTime(ef,now+dur);
+g.gain.setValueAtTime(.0001,now);
+g.gain.exponentialRampToValueAtTime(vol,now+.01);
+g.gain.exponentialRampToValueAtTime(.0001,now+dur+.05);
+o.connect(g);g.connect(audio.destination);
+o.start(now);o.stop(now+dur+.1);
+}catch{}
+}
+$("sound-toggle").addEventListener("click",()=>{
+soundOn=!soundOn;
+$("sound-toggle").innerHTML = soundOn
+? '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>SOUND ON'
+: '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6M17 9l6 6"/></svg>SOUND OFF';
+if(soundOn)sound("click");
+});
+
+/* STATE */
+let state=loadState();
+
+function defaultState(){
+return{
+chips:1000,
+totalChipsEarned:1000,
+gamesPlayed:0,
+biggestWin:0,
+gamesPlayedByType:{plinko:0,crash:0,dice:0,mines:0,wheel:0,slots:0,keno:0,blackjack:0},
+achievements:[],
+daily:{day:"",spun:false},
+dailyStreak:0,
+lastDailyDay:"",
+lastWheelResult:null
+}
+}
+function loadState(){
+try{
+const s=JSON.parse(localStorage.getItem(SAVE_KEY));
+if(!s||typeof s!=="object")return defaultState();
+const def=defaultState();
+const merged={...def,...s,gamesPlayedByType:{...def.gamesPlayedByType,...(s.gamesPlayedByType||{})},daily:{...def.daily,...(s.daily||{})}};
+if(merged.daily.day!==todayKey()){ merged.daily={day:todayKey(),spun:false}; }
+if(merged.lastDailyDay && merged.lastDailyDay!==todayKey()){
+const yest=new Date();yest.setDate(yest.getDate()-1);
+const yKey=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
+if(merged.lastDailyDay!==yKey) merged.dailyStreak=0;
+}
+return merged;
+}catch{return defaultState()}
+}
+function saveState(){ try{localStorage.setItem(SAVE_KEY,JSON.stringify(state))}catch{} }
+function todayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+
+/* ACHIEVEMENTS */
+const achievements={
+plinko:[
+{id:"plinko_first",name:"First Drop",desc:"Run Fate Drop for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.plinko>=1},
+{id:"plinko_10",name:"Frequent Dropper",desc:"Run Fate Drop 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.plinko>=10},
+{id:"plinko_win",name:"Lucky Cascade",desc:"Earn 10x your Fate on Fate Drop",tier:"silver",check:s=>s.biggestWin>=10},
+{id:"plinko_50",name:"Cascade Devotee",desc:"Run Fate Drop 50 times",tier:"silver",check:s=>s.gamesPlayedByType.plinko>=50},
+{id:"plinko_100",name:"Cascade Master",desc:"Run Fate Drop 100 times",tier:"gold",check:s=>s.gamesPlayedByType.plinko>=100},
+{id:"plinko_max",name:"Perfect Cascade",desc:"Hit the 100x multiplier",tier:"platinum",check:s=>s.biggestWin>=100}
+],
+crash:[
+{id:"crash_first",name:"First Ascent",desc:"Run Ascension for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.crash>=1},
+{id:"crash_10",name:"Frequent Ascender",desc:"Run Ascension 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.crash>=10},
+{id:"crash_2x",name:"Double Ascent",desc:"Extract at 2x or higher",tier:"silver",check:s=>s.biggestWin>=2},
+{id:"crash_5x",name:"High Ascent",desc:"Extract at 5x or higher",tier:"gold",check:s=>s.biggestWin>=5},
+{id:"crash_10x",name:"Stellar Ascent",desc:"Extract at 10x or higher",tier:"gold",check:s=>s.biggestWin>=10},
+{id:"crash_50",name:"Cosmic Ascent",desc:"Extract at 50x or higher",tier:"platinum",check:s=>s.biggestWin>=50}
+],
+dice:[
+{id:"dice_first",name:"First Roll",desc:"Run Fate Roll for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.dice>=1},
+{id:"dice_10",name:"Frequent Roller",desc:"Run Fate Roll 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.dice>=10},
+{id:"dice_5x",name:"Lucky Roll",desc:"Earn 5x your Fate on Fate Roll",tier:"silver",check:s=>s.biggestWin>=5},
+{id:"dice_10x",name:"Fate Roller",desc:"Earn 10x your Fate on Fate Roll",tier:"gold",check:s=>s.biggestWin>=10},
+{id:"dice_100",name:"Dice Sage",desc:"Earn 100x your Fate on Fate Roll",tier:"platinum",check:s=>s.biggestWin>=100}
+],
+mines:[
+{id:"mines_first",name:"First Cache",desc:"Run Hidden Caches for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.mines>=1},
+{id:"mines_10",name:"Cache Hunter",desc:"Run Hidden Caches 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.mines>=10},
+{id:"mines_5x",name:"Treasure Seeker",desc:"Extract at 5x or higher",tier:"silver",check:s=>s.biggestWin>=5},
+{id:"mines_10x",name:"Cache Master",desc:"Extract at 10x or higher",tier:"gold",check:s=>s.biggestWin>=10},
+{id:"mines_50x",name:"Void Walker",desc:"Extract at 50x or higher",tier:"platinum",check:s=>s.biggestWin>=50}
+],
+wheel:[
+{id:"wheel_first",name:"First Spin",desc:"Run Oracle's Wheel for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.wheel>=1},
+{id:"wheel_10",name:"Wheel Devotee",desc:"Run Oracle's Wheel 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.wheel>=10},
+{id:"wheel_5x",name:"Oracle's Favor",desc:"Earn 5x your Fate on the Wheel",tier:"silver",check:s=>s.biggestWin>=5},
+{id:"wheel_10x",name:"Fortune's Chosen",desc:"Earn 10x your Fate on the Wheel",tier:"gold",check:s=>s.biggestWin>=10},
+{id:"wheel_50x",name:"Oracle's Champion",desc:"Earn 50x your Fate on the Wheel",tier:"platinum",check:s=>s.biggestWin>=50}
+],
+slots:[
+{id:"slots_first",name:"First Alignment",desc:"Run Fate Reels for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.slots>=1},
+{id:"slots_10",name:"Reel Devotee",desc:"Run Fate Reels 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.slots>=10},
+{id:"slots_5x",name:"Aligned Reels",desc:"Earn 5x your Fate on Fate Reels",tier:"silver",check:s=>s.biggestWin>=5},
+{id:"slots_10x",name:"Reel Master",desc:"Earn 10x your Fate on Fate Reels",tier:"gold",check:s=>s.biggestWin>=10},
+{id:"slots_100x",name:"Cosmic Alignment",desc:"Earn 100x your Fate on Fate Reels",tier:"platinum",check:s=>s.biggestWin>=100}
+],
+keno:[
+{id:"keno_first",name:"First Mark",desc:"Run Number Seer for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.keno>=1},
+{id:"keno_10",name:"Number Devotee",desc:"Run Number Seer 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.keno>=10},
+{id:"keno_5x",name:"Seer's Favor",desc:"Earn 5x your Fate on Number Seer",tier:"silver",check:s=>s.biggestWin>=5},
+{id:"keno_10x",name:"Seer's Champion",desc:"Earn 10x your Fate on Number Seer",tier:"gold",check:s=>s.biggestWin>=10},
+{id:"keno_100x",name:"Cosmic Seer",desc:"Earn 100x your Fate on Number Seer",tier:"platinum",check:s=>s.biggestWin>=100}
+],
+blackjack:[
+{id:"bj_first",name:"First Hand",desc:"Run Fate's Hand for the first time",tier:"bronze",check:s=>s.gamesPlayedByType.blackjack>=1},
+{id:"bj_10",name:"Hand Devotee",desc:"Run Fate's Hand 10 times",tier:"bronze",check:s=>s.gamesPlayedByType.blackjack>=10},
+{id:"bj_win",name:"Natural 21",desc:"Win a hand of Fate's Hand",tier:"silver",check:s=>s.biggestWin>=1},
+{id:"bj_5x",name:"High Hand",desc:"Earn 5x your Fate on Fate's Hand",tier:"gold",check:s=>s.biggestWin>=5},
+{id:"bj_10x",name:"Fate's Champion",desc:"Earn 10x your Fate on Fate's Hand",tier:"platinum",check:s=>s.biggestWin>=10}
+]
+};
+
+const metaAchievements=[
+{id:"meta_first",name:"First Steps",desc:"Run your first experiment",check:s=>s.gamesPlayed>=1},
+{id:"meta_10",name:"Getting Started",desc:"Run 10 experiments",check:s=>s.gamesPlayed>=10},
+{id:"meta_25",name:"Seeker",desc:"Run 25 experiments",check:s=>s.gamesPlayed>=25},
+{id:"meta_50",name:"Devoted Seeker",desc:"Run 50 experiments",check:s=>s.gamesPlayed>=50},
+{id:"meta_100",name:"Century Seeker",desc:"Run 100 experiments",check:s=>s.gamesPlayed>=100},
+{id:"meta_500",name:"Eternal Seeker",desc:"Run 500 experiments",check:s=>s.gamesPlayed>=500},
+{id:"meta_all8",name:"Jack of All Fates",desc:"Run all 8 experiments at least once",check:s=>Object.values(s.gamesPlayedByType).every(v=>v>0)},
+{id:"meta_rich1k",name:"Fate Gatherer",desc:"Reach 1,000 total Fate earned",check:s=>s.totalChipsEarned>=1000},
+{id:"meta_rich10k",name:"Fate Weaver",desc:"Reach 10,000 total Fate earned",check:s=>s.totalChipsEarned>=10000},
+{id:"meta_rich100k",name:"Fate Master",desc:"Reach 100,000 total Fate earned",check:s=>s.totalChipsEarned>=100000},
+{id:"meta_rich1m",name:"Fate Incarnate",desc:"Reach 1,000,000 total Fate earned",check:s=>s.totalChipsEarned>=1000000},
+{id:"meta_daily1",name:"First Oracle",desc:"Consult the daily oracle",check:s=>s.dailyStreak>=1},
+{id:"meta_daily3",name:"Oracle Devotee",desc:"Reach a 3-day oracle streak",check:s=>s.dailyStreak>=3},
+{id:"meta_daily7",name:"Weekly Oracle",desc:"Reach a 7-day oracle streak",check:s=>s.dailyStreak>=7},
+{id:"meta_daily14",name:"Fortnight Oracle",desc:"Reach a 14-day oracle streak",check:s=>s.dailyStreak>=14},
+{id:"meta_daily30",name:"Monthly Oracle",desc:"Reach a 30-day oracle streak",check:s=>s.dailyStreak>=30},
+{id:"meta_bronze",name:"Bronze Collector",desc:"Unlock 10 bronze discoveries",check:s=>countTier(s,"bronze")>=10},
+{id:"meta_silver",name:"Silver Collector",desc:"Unlock 10 silver discoveries",check:s=>countTier(s,"silver")>=10},
+{id:"meta_gold",name:"Gold Collector",desc:"Unlock 10 gold discoveries",check:s=>countTier(s,"gold")>=10},
+{id:"meta_platinum",name:"Platinum Collector",desc:"Unlock 5 platinum discoveries",check:s=>countTier(s,"platinum")>=5}
+];
+
+function countTier(s,tier){
+let c=0;
+for(const game in achievements){
+for(const a of achievements[game]){
+if(a.tier===tier&&s.achievements.includes(a.id))c++;
+}
+}
+return c;
+}
+
+function hasAch(id){return state.achievements.includes(id)}
+function unlockAch(id){
+if(hasAch(id))return false;
+state.achievements.push(id);
+saveState();
+const all=Object.values(achievements).flat().concat(metaAchievements);
+const a=all.find(x=>x.id===id);
+if(a)showAchToast(a.name);
+updateRecentAch(a.name);
+updateRank();
+return true;
+}
+
+/* RANK SYSTEM */
+function updateRank() {
+let pts = 0;
+for(let i=0; i<state.achievements.length; i++) {
+let id = state.achievements[i];
+if(id.includes("bronze")) pts += 10;
+else if(id.includes("silver")) pts += 25;
+else if(id.includes("gold")) pts += 100;
+else if(id.includes("platinum")) pts += 500;
+else pts += 50;
+}
+
+let rankName = "UNRANKED";
+let nextReq = 100;
+
+if(pts >= 15000) { rankName = "CELESTIAL"; nextReq = 15000; }
+else if(pts >= 10000) { rankName = "TITAN"; nextReq = 15000; }
+else if(pts >= 6000) { rankName = "CHAMPION"; nextReq = 10000; }
+else if(pts >= 3000) { rankName = "GRANDMASTER"; nextReq = 6000; }
+else if(pts >= 1500) { rankName = "MASTER"; nextReq = 3000; }
+else if(pts >= 800) { rankName = "DIAMOND"; nextReq = 1500; }
+else if(pts >= 400) { rankName = "PLATINUM"; nextReq = 800; }
+else if(pts >= 200) { rankName = "GOLD"; nextReq = 400; }
+else if(pts >= 100) { rankName = "SILVER"; nextReq = 200; }
+else if(pts >= 30) { rankName = "BRONZE"; nextReq = 100; }
+
+$("rank-btn-text").textContent = rankName;
+$("rank-name").textContent = rankName;
+$("rank-score").textContent = `${pts} / ${nextReq} PTS`;
+
+let pct = Math.min(100, (pts / nextReq) * 100);
+$("rank-progress").style.width = pct + "%";
+}
+
+
+let achToastTimer;
+function showAchToast(name){
+$("ach-toast-name").textContent=name;
+$("ach-toast").classList.add("show");
+clearTimeout(achToastTimer);
+achToastTimer=setTimeout(()=>$("ach-toast").classList.remove("show"),3500);
+sound("mystic");
+}
+function checkAch(game){
+let newOnes=[];
+for(const a of achievements[game]||[]){
+if(!hasAch(a.id)&&a.check(state))newOnes.push(a.id);
+}
+for(const m of metaAchievements){
+if(!hasAch(m.id)&&m.check(state)){newOnes.push(m.id);unlockAch(m.id);}
+}
+return newOnes;
+}
+
+function updateRecentAch(name) {
+$("recent-ach-desc").innerHTML = `You just discovered <b style="color:var(--gold)">${name}</b>!`;
+}
+
+function renderAchBadges(){
+for(const game of ["plinko","crash","dice","mines","wheel","slots","keno","blackjack"]){
+const container=$("ach-"+game);
+if(!container)continue;
+container.innerHTML="";
+for(const a of achievements[game]){
+const badge=document.createElement("div");
+const unlocked=hasAch(a.id);
+badge.className="ach-badge"+(unlocked?" unlocked tier-"+a.tier:"");
+badge.title=a.name+" — "+a.desc+(unlocked?" (Discovered)":"");
+badge.innerHTML='<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+container.appendChild(badge);
+}
+}
+$("ach-count").textContent=state.achievements.length+" DISCOVERIES";
+updateRank();
+}
+
+function renderAchList(){
+const list=$("ach-list");list.innerHTML="";
+const metaSection=document.createElement("div");
+metaSection.style.marginBottom="20px";
+const metaTitle=document.createElement("div");
+metaTitle.style.cssText="font-size:9px;font-weight:950;letter-spacing:2px;color:var(--gold);margin-bottom:8px";
+metaTitle.textContent="META DISCOVERIES";
+metaSection.appendChild(metaTitle);
+for(const a of metaAchievements){
+const unlocked=hasAch(a.id);
+const row=document.createElement("div");
+row.style.cssText=`display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;margin-bottom:5px;background:${unlocked?'rgba(255,215,0,.08)':'rgba(255,255,255,.02)'};border:1px solid ${unlocked?'rgba(255,215,0,.3)':'rgba(255,255,255,.05)'}`;
+row.innerHTML=`
+<div class="ach-badge${unlocked?' unlocked tier-gold':''}"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+<div style="flex:1"><div style="font-size:10px;font-weight:900;color:${unlocked?'var(--gold)':'var(--text)'};margin-bottom:2px">${a.name}</div><div style="font-size:8px;color:var(--muted)">${a.desc}</div></div>`;
+metaSection.appendChild(row);
+}
+list.appendChild(metaSection);
+for(const game of ["plinko","crash","dice","mines","wheel","slots","keno","blackjack"]){
+const section=document.createElement("div");
+section.style.marginBottom="20px";
+const title=document.createElement("div");
+title.style.cssText="font-size:9px;font-weight:950;letter-spacing:2px;color:var(--muted);margin-bottom:8px";
+title.textContent=game.toUpperCase();
+section.appendChild(title);
+for(const a of achievements[game]){
+const unlocked=hasAch(a.id);
+const row=document.createElement("div");
+row.style.cssText=`display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;margin-bottom:5px;background:${unlocked?'rgba(255,215,0,.08)':'rgba(255,255,255,.02)'};border:1px solid ${unlocked?'rgba(255,215,0,.3)':'rgba(255,255,255,.05)'}`;
+row.innerHTML=`
+<div class="ach-badge${unlocked?' unlocked tier-'+a.tier:''}"><svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+<div style="flex:1"><div style="font-size:10px;font-weight:900;color:${unlocked?'var(--gold)':'var(--text)'};margin-bottom:2px">${a.name} <span style="font-size:7px;color:var(--muted);font-weight:800;letter-spacing:1px">· ${a.tier.toUpperCase()}</span></div><div style="font-size:8px;color:var(--muted)">${a.desc}</div></div>`;
+section.appendChild(row);
+}
+list.appendChild(section);
+}
+}
+
+/* HELPERS */
+function formatChips(n){
+if(n>=1000000)return (n/1000000).toFixed(1)+"M";
+if(n>=1000)return (n/1000).toFixed(1)+"K";
+return Math.round(n).toString();
+}
+
+function updateUI(){
+$("wallet-amount").textContent=formatChips(state.chips);
+$("stat-chips").textContent=formatChips(state.chips);
+$("stat-games").textContent=state.gamesPlayed;
+$("stat-bigwin").textContent=state.biggestWin>0?formatChips(state.biggestWin)+"x":"—";
+$("stat-streak").textContent=state.dailyStreak+"d";
+const netProfit=state.totalChipsEarned-1000;
+$("stat-profit").textContent=(netProfit>=0?"+":"")+formatChips(netProfit);
+
+for(const game of ["plinko","crash","dice","mines","wheel","slots","keno","blackjack"]){
+const el=$("played-"+game);
+if(el)el.textContent=state.gamesPlayedByType[game]||0;
+}
+
+// Dynamic title
+if(state.totalChipsEarned>=1000000)$("dynamic-title").textContent="FATE INCARNATE";
+else if(state.totalChipsEarned>=100000)$("dynamic-title").textContent="FATE MASTER";
+else if(state.gamesPlayed>=100)$("dynamic-title").textContent="ETERNAL SEEKER";
+else if(state.biggestWin>=50)$("dynamic-title").textContent="ORACLE'S CHAMPION";
+else if(state.biggestWin>=10)$("dynamic-title").textContent="FORTUNE'S CHOSEN";
+else $("dynamic-title").textContent="THE SEEKER";
+
+renderAchBadges();
+renderDaily();
+}
+updateUI();
+
+/* DAILY GOAL */
+function renderDaily(){
+if(document.hidden)return;
+const d=state.daily;
+const progress=d.spun?1:0;
+$("daily-progress-fill").style.width=(progress*100)+"%";
+$("daily-status").textContent=`${d.spun?1:0} / 1 CONSULTED`;
+$("daily-status").className=d.spun?"daily-complete":"";
+if(d.spun){
+$("daily-title").textContent="✓ ORACLE CONSULTED";
+$("daily-title").className="daily-title daily-complete";
+$("daily-desc").innerHTML=`The oracle rests. Return tomorrow. Streak: <b>${state.dailyStreak} day${state.dailyStreak===1?"":"s"}</b>`;
+}else{
+$("daily-title").textContent="✦ DAILY FORTUNE";
+$("daily-title").className="daily-title";
+$("daily-desc").innerHTML=`Consult the oracle for free Fate! Streak: <b>${state.dailyStreak} day${state.dailyStreak===1?"":"s"}</b>`;
+}
+const now=new Date();
+const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
+const diff=midnight-now;
+const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);
+$("daily-timer").textContent=`RESETS IN ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+setInterval(renderDaily,1000);
+
+function recordDailySpin(){
+if(state.daily.spun)return false;
+state.daily.spun=true;
+const yest=new Date();
+yest.setDate(yest.getDate()-1);
+const yKey=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
+state.dailyStreak = state.lastDailyDay===yKey ? state.dailyStreak+1 : 1;
+state.lastDailyDay=todayKey();
+for(const m of metaAchievements){
+if(!hasAch(m.id)&&m.check(state))unlockAch(m.id);
+}
+saveState();
+renderDaily();
+return true;
+}
+
+/* RESET & DIALOGS */
+$("reset-stats").addEventListener("click",()=>{ $("reset-dialog").showModal(); });
+$("cancel-reset").addEventListener("click",()=>$("reset-dialog").close());
+$("confirm-reset").addEventListener("click",()=>{
+state=defaultState();
+saveState();updateUI();renderAchList();
+$("reset-dialog").close();
+notify("ALL FATE RESET");
+});
+$("reset-dialog").addEventListener("click",e=>{if(e.target===$("reset-dialog"))$("reset-dialog").close()});
+
+$("open-achievements").addEventListener("click",()=>{
+renderAchList();
+$("ach-dialog").showModal();
+});
+$("close-ach").addEventListener("click",()=>$("ach-dialog").close());
+$("ach-dialog").addEventListener("click",e=>{if(e.target===$("ach-dialog"))$("ach-dialog").close()});
+
+$("open-rank").addEventListener("click",()=>{
+updateRank();
+$("rank-dialog").showModal();
+});
+$("close-rank").addEventListener("click",()=>$("rank-dialog").close());
+$("rank-dialog").addEventListener("click",e=>{if(e.target===$("rank-dialog"))$("rank-dialog").close()});
+
+/* SPIN WHEEL DIALOG */
+const wheelPrizes=[100,250,500,100,1000,250,5000,250,100,500,2500,100,750,250,100,500];
+const wheelColors=["#ffd700","#ffb800","#a47aff","#cd7f32","#ffd700","#ffb800","#ff4757","#ffb800","#ffd700","#a47aff","#70efb4","#ffd700","#ffb800","#a47aff","#ffd700","#ffb800"];
+let bonusWheelRot=0;
+let spinInProgress=false;
+
+function buildBonusWheel(){
+const g=$("wheel-groups");g.innerHTML="";
+const n=wheelPrizes.length;
+const sliceAngle=(Math.PI*2)/n;
+for(let i=0;i<n;i++){
+const startAngle=i*sliceAngle-Math.PI/2;
+const endAngle=startAngle+sliceAngle;
+const x1=100+95*Math.cos(startAngle),y1=100+95*Math.sin(startAngle);
+const x2=100+95*Math.cos(endAngle),y2=100+95*Math.sin(endAngle);
+const largeArc=sliceAngle>Math.PI?1:0;
+const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+path.setAttribute("d",`M100,100 L${x1},${y1} A95,95 0 ${largeArc},1 ${x2},${y2} Z`);
+path.setAttribute("fill",wheelColors[i]);
+path.setAttribute("stroke","#0d0a14");
+path.setAttribute("stroke-width","1");
+g.appendChild(path);
+const midAngle=startAngle+sliceAngle/2;
+const tx=100+62*Math.cos(midAngle),ty=100+62*Math.sin(midAngle);
+const text=document.createElementNS("http://www.w3.org/2000/svg","text");
+text.setAttribute("x",tx);text.setAttribute("y",ty);
+text.setAttribute("text-anchor","middle");text.setAttribute("dominant-baseline","middle");
+text.setAttribute("font-size","10");text.setAttribute("font-weight","900");text.setAttribute("fill","#0d0a14");
+text.textContent=wheelPrizes[i];
+g.appendChild(text);
+}
+}
+
+$("open-spin").addEventListener("click",()=>{
+buildBonusWheel();
+$("spin-result").textContent="";
+$("do-spin").disabled=state.daily.spun;
+$("do-spin").style.opacity=state.daily.spun?0.3:1;
+$("do-spin").style.pointerEvents=state.daily.spun?"none":"auto";
+if(state.daily.spun)$("spin-result").textContent="The oracle is silent today. Return tomorrow.";
+$("spin-dialog").showModal();
+});
+$("close-spin").addEventListener("click",()=>$("spin-dialog").close());
+$("spin-dialog").addEventListener("click",e=>{if(e.target===$("spin-dialog"))$("spin-dialog").close()});
+
+$("do-spin").addEventListener("click",()=>{
+if(spinInProgress||state.daily.spun)return;
+spinInProgress=true;
+$("do-spin").disabled=true;
+$("do-spin").style.opacity=0.5;
+$("spin-result").textContent="Consulting the oracle...";
+sound("mystic");
+
+const prizeIdx=Math.floor(Math.random()*wheelPrizes.length);
+const prize=wheelPrizes[prizeIdx];
+const n=wheelPrizes.length;
+const sliceAngle=360/n;
+const targetAngle=360*5 - (prizeIdx*sliceAngle + sliceAngle/2);
+bonusWheelRot+=targetAngle;
+const svg=$("bonus-wheel");
+svg.style.transition="transform 4s cubic-bezier(0.2,0.8,0.2,1)";
+svg.style.transform=`rotate(${bonusWheelRot}deg)`;
+
+setTimeout(()=>{
+spinInProgress=false;
+state.chips+=prize;
+state.totalChipsEarned+=prize;
+if(prize>state.biggestWin)state.biggestWin=prize;
+state.gamesPlayed++;
+recordDailySpin();
+saveState();
+updateUI();
+$("spin-result").textContent=`✨ +${formatChips(prize)} FATE!`;
+$("spin-result").style.animation="popIn .4s cubic-bezier(0.175,0.885,0.32,1.275)";
+sound("win");
+checkAch("plinko");
+notify(`+${formatChips(prize)} FATE!`);
+},4200);
+});
+
+function notify(text){
+const el=$("toast");el.textContent=text;el.classList.add("show");
+clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2400);
+}
+
+/* STARFIELD */
+const starCanvas=$("stars"),starCtx=starCanvas.getContext("2d");
+const shootCanvas=$("shooting"),shootCtx=shootCanvas.getContext("2d");
+let stars=[],shootingStars=[],mouseParallax={x:0,y:0};
+document.addEventListener("mousemove",e=>{
+mouseParallax.x=(e.clientX/innerWidth-0.5)*30;
+mouseParallax.y=(e.clientY/innerHeight-0.5)*30;
+});
+function resizeCanvases(){
+const dpr=Math.min(devicePixelRatio||1,2);
+for(const[c,ctx]of[[starCanvas,starCtx],[shootCanvas,shootCtx]]){
+c.width=innerWidth*dpr;c.height=innerHeight*dpr;
+c.style.width=innerWidth+"px";c.style.height=innerHeight+"px";
+ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+stars=Array.from({length:Math.min(120,Math.floor(innerWidth/8))},()=>({
+x:Math.random()*innerWidth,y:Math.random()*innerHeight,
+r:Math.random()*1.4+.2,a:Math.random()*.55+.12,p:Math.random()*7,
+depth:Math.random()*0.5+0.1
+}));
+}
+function drawStars(t){
+starCtx.clearRect(0,0,innerWidth,innerHeight);
+for(const s of stars){
+const px=mouseParallax.x*s.depth,py=mouseParallax.y*s.depth;
+starCtx.fillStyle=`rgba(200,190,255,${s.a*(.65+Math.sin(t*.001+s.p)*.35)})`;
+starCtx.beginPath();starCtx.arc(s.x+px,s.y+py,s.r,0,Math.PI*2);starCtx.fill();
+}
+}
+function spawnShootingStar(){
+const startX=innerWidth*0.55+Math.random()*innerWidth*0.45;
+const startY=-20+Math.random()*80;
+const angle=Math.PI*0.62+Math.random()*0.25;
+const speed=7+Math.random()*5;
+shootingStars.push({x:startX,y:startY,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,len:80+Math.random()*80,life:1,decay:0.004+Math.random()*0.004,hue:Math.random()<0.5?50:270});
+}
+let shootTimer=0,bgFrameCount=0,lastFrame=performance.now();
+function drawShooting(dt){
+shootCtx.clearRect(0,0,innerWidth,innerHeight);
+for(let i=shootingStars.length-1;i>=0;i--){
+const s=shootingStars[i];
+s.x+=s.vx;s.y+=s.vy;s.life-=s.decay;
+if(s.life<=0||s.x<-100||s.y>innerHeight+100){shootingStars.splice(i,1);continue}
+const tailX=s.x-s.vx*(s.len/10),tailY=s.y-s.vy*(s.len/10);
+const grad=shootCtx.createLinearGradient(s.x,s.y,tailX,tailY);
+grad.addColorStop(0,`hsla(${s.hue},100%,85%,${s.life})`);
+grad.addColorStop(0.4,`hsla(${s.hue},100%,70%,${s.life*0.5})`);
+grad.addColorStop(1,`hsla(${s.hue},100%,60%,0)`);
+shootCtx.strokeStyle=grad;shootCtx.lineWidth=2.2;shootCtx.lineCap="round";
+shootCtx.beginPath();shootCtx.moveTo(s.x,s.y);shootCtx.lineTo(tailX,tailY);shootCtx.stroke();
+shootCtx.fillStyle=`hsla(${s.hue},100%,90%,${s.life})`;
+shootCtx.beginPath();shootCtx.arc(s.x,s.y,2,0,Math.PI*2);shootCtx.fill();
+}
+}
+function bgLoop(now){
+const dt=Math.min((now-lastFrame)/1000,1);lastFrame=now;
+bgFrameCount++;
+if(bgFrameCount%3===0){
+drawStars(now);
+shootTimer+=dt*3;
+if(shootTimer>2.2+Math.random()*2.5){
+shootTimer=0;
+if(Math.random()<0.65)spawnShootingStar();
+}
+drawShooting(dt*3);
+}
+requestAnimationFrame(bgLoop);
+}
+resizeCanvases();addEventListener("resize",resizeCanvases);
+requestAnimationFrame(bgLoop);
+
+/* GAME SYSTEM */
+let currentGame=null;
+const gameScreen=$("game-screen");
+const gsBody=$("gs-body");
+const gsTitle=$("gs-title");
+const gameBg=$("game-bg");
+let currentBet=10;
+let gameCleanup=null;
+
+function openGame(id){
+currentGame=id;
+gameScreen.classList.add("active");
+document.body.style.overflow="hidden";
+gameBg.style.background="";
+const cfg={
+plinko:{title:"FATE DROP",run:startPlinko},
+crash:{title:"ASCENSION",run:startCrash},
+dice:{title:"FATE ROLL",run:startDice},
+mines:{title:"HIDDEN CACHES",run:startMines},
+wheel:{title:"ORACLE'S WHEEL",run:startWheel},
+slots:{title:"FATE REELS",run:startSlots},
+keno:{title:"NUMBER SEER",run:startKeno},
+blackjack:{title:"FATE'S HAND",run:startBlackjack}
+}[id];
+gsTitle.innerHTML=`<span>${cfg.title}</span>`;
+if(gameCleanup){gameCleanup();gameCleanup=null;}
+cfg.run();
+sound("click");
+}
+function closeGame(){
+if(gameCleanup){gameCleanup();gameCleanup=null;}
+currentGame=null;
+gameScreen.classList.remove("active");
+document.body.style.overflow="";
+gsBody.innerHTML="";
+$("results").classList.remove("active");
+sound("click");
+}
+$("gs-back").addEventListener("click",closeGame);
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape"&&currentGame&&!$("ach-dialog").open&&!$("reset-dialog").open&&!$("rank-dialog").open&&!$("spin-dialog").open)closeGame();
+});
+
+document.querySelectorAll(".game-card").forEach(card=>{
+card.addEventListener("click",()=>openGame(card.dataset.game));
+});
+
+/* BET CONTROLS HELPER */
+function renderBetControls(){
+return `
+<div class="bet-controls">
+<button class="bet-btn" data-bet="1" type="button">1</button>
+<button class="bet-btn" data-bet="10" type="button">10</button>
+<button class="bet-btn" data-bet="50" type="button">50</button>
+<button class="bet-btn" data-bet="100" type="button">100</button>
+<button class="bet-btn" data-bet="500" type="button">500</button>
+<div class="bet-amount-display" id="bet-display">${currentBet}</div>
+<button class="bet-btn" data-bet="half" type="button">½</button>
+<button class="bet-btn" data-bet="double" type="button">2x</button>
+<button class="bet-btn" data-bet="max" type="button">MAX</button>
+</div>
+`;
+}
+
+function setupBetControls(container, onChange){
+const display=container.querySelector("#bet-display");
+container.querySelectorAll("[data-bet]").forEach(btn=>{
+btn.addEventListener("click",()=>{
+const v=btn.dataset.bet;
+if(v==="half")currentBet=Math.max(1,Math.floor(currentBet/2));
+else if(v==="double")currentBet=Math.min(state.chips,currentBet*2);
+else if(v==="max")currentBet=Math.max(1,state.chips);
+else currentBet=parseInt(v);
+currentBet=Math.min(currentBet,state.chips);
+if(currentBet<1)currentBet=1;
+if(display)display.textContent=formatChips(currentBet);
+if(onChange)onChange(currentBet);
+sound("chip");
+});
+});
+if(display)display.textContent=formatChips(currentBet);
+}
+
+/* RESULTS */
+function showResults(game,title,value,isWin,profit,onRetry){
+$("results-title").textContent=title;
+const valEl=$("results-value");
+valEl.textContent=value;
+valEl.className="results-value "+(isWin?"win":"lose");
+
+const rankEl=$("results-rank");
+if(isWin){rankEl.textContent="FORTUNE";rankEl.className="results-rank green";}
+else{rankEl.textContent="MISFORTUNE";rankEl.className="results-rank pink";}
+
+const newAchs=checkAch(game);
+
+$("results-sub").innerHTML=`${isWin?"✨ Fate gained: <b style='color:var(--green)'>+"+formatChips(profit)+"</b>":"💨 Fate lost: <b style='color:var(--red)'>-"+formatChips(Math.abs(profit))+"</b>"}`;
+$("results-avg").innerHTML=`Total Fate: <b>${formatChips(state.chips)}</b>`;
+
+const achEl=$("results-ach");
+if(newAchs.length>0){
+const names=newAchs.map(id=>{
+const all=Object.values(achievements).flat().concat(metaAchievements);
+const a=all.find(x=>x.id===id);
+return a?a.name:id;
+});
+achEl.style.display="block";
+achEl.innerHTML="🔮 <b>DISCOVERED:</b><br>"+names.join(" · ");
+}else{
+achEl.style.display="none";
+}
+
+$("results").classList.add("active");
+
+$("results-again").onclick=()=>{ $("results").classList.remove("active"); onRetry(); };
+$("results-exit").onclick=()=>{ $("results").classList.remove("active"); closeGame(); };
+}
+
+function recordGame(gameType, bet, payout){
+state.chips += payout;
+state.totalChipsEarned += payout;
+if(payout>state.biggestWin)state.biggestWin=payout;
+state.gamesPlayed++;
+state.gamesPlayedByType[gameType]=(state.gamesPlayedByType[gameType]||0)+1;
+saveState();
+updateUI();
+checkAch(gameType);
+}
+
+/* FATE DROP (PLINKO) */
+function startPlinko(){
+const html=`
+<div class="gs-hint">Release a fated orb. Watch it cascade through the lattice. Multipliers below range from 0.2x to 100x.</div>
+${renderBetControls()}
+<button class="bet-btn" id="plinko-drop" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;">RELEASE ORB (${formatChips(currentBet)})</button>
+<div class="plinko-board">
+<canvas class="plinko-canvas" id="plinko-canvas"></canvas>
+</div>
+<div class="plinko-result" id="plinko-result"></div>
+`;
+gsBody.innerHTML=html;
+const canvas=$("plinko-canvas");
+const ctx=canvas.getContext("2d");
+const dropBtn=$("plinko-drop");
+const resultEl=$("plinko-result");
+
+setupBetControls(gsBody);
+
+const multipliers=[100,50,20,10,5,3,2,1.5,1,0.5,0.2,0.5,1,1.5,2,3,5,10,20,50,100];
+const slots=multipliers.length;
+let ball=null;
+let animating=false;
+let rafId=null;
+
+function resize(){
+const rect=canvas.getBoundingClientRect();
+const dpr=Math.min(devicePixelRatio||1,2);
+canvas.width=rect.width*dpr;
+canvas.height=rect.height*dpr;
+ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+setTimeout(resize,50);
+window.addEventListener("resize",resize);
+
+function drawBoard(){
+const w=canvas.width/(window.devicePixelRatio||1);
+const h=canvas.height/(window.devicePixelRatio||1);
+ctx.clearRect(0,0,w,h);
+
+const rows=10;
+const topPad=30;
+const rowHeight=(h-topPad-40)/rows;
+const boardWidth=w-40;
+const pegRadius=3;
+
+for(let r=0;r<rows;r++){
+const pegsInRow=r+2;
+const rowY=topPad+r*rowHeight;
+const spacing=boardWidth/(pegsInRow+1);
+for(let p=0;p<pegsInRow;p++){
+const x=20+spacing*(p+1);
+ctx.fillStyle="rgba(255,215,0,0.6)";
+ctx.beginPath();
+ctx.arc(x,rowY,pegRadius,0,Math.PI*2);
+ctx.fill();
+}
+}
+
+const slotWidth=boardWidth/slots;
+for(let i=0;i<slots;i++){
+const x=20+i*slotWidth;
+const m=multipliers[i];
+let color="#ffd700";
+if(m>=50)color="#ff4757";
+else if(m>=10)color="#ff9500";
+else if(m>=3)color="#ffd700";
+else if(m>=1)color="#70efb4";
+else color="#cd7f32";
+ctx.fillStyle=color;
+ctx.globalAlpha=0.25;
+ctx.fillRect(x,h-35,slotWidth-2,30);
+ctx.globalAlpha=1;
+ctx.strokeStyle=color;
+ctx.lineWidth=2;
+ctx.strokeRect(x,h-35,slotWidth-2,30);
+ctx.fillStyle=color;
+ctx.font="bold 10px sans-serif";
+ctx.textAlign="center";
+ctx.textBaseline="middle";
+ctx.fillText(m+"x",x+slotWidth/2,h-20);
+}
+}
+
+function dropBall(){
+if(animating||currentBet>state.chips){if(currentBet>state.chips)notify("NOT ENOUGH FATE");return;}
+animating=true;
+dropBtn.disabled=true;
+resultEl.textContent="";
+state.chips-=currentBet;
+updateUI();
+sound("chip");
+
+const w=canvas.width/(window.devicePixelRatio||1);
+const h=canvas.height/(window.devicePixelRatio||1);
+const targetSlot=Math.floor(Math.random()*slots);
+const slotWidth=(w-40)/slots;
+const targetX=20+targetSlot*slotWidth+slotWidth/2;
+
+ball={
+x:w/2,
+y:30,
+vy:0,
+vx:(Math.random()-0.5)*2,
+targetX:targetX,
+targetSlot:targetSlot,
+bounces:0
+};
+
+function animate(){
+if(!ball){drawBoard();return;}
+ball.vy+=0.5;
+ball.x+=ball.vx;
+ball.y+=ball.vy;
+if(ball.y>40&&ball.y<h-40){
+const row=Math.floor((ball.y-30)/((h-70)/10));
+if(row>=0&&row<10){
+const pegsInRow=row+2;
+const spacing=(w-40)/(pegsInRow+1);
+const localX=ball.x-20;
+const pegIdx=Math.round(localX/spacing)-1;
+if(pegIdx>=0&&pegIdx<pegsInRow){
+const pegX=20+spacing*(pegIdx+1);
+if(Math.abs(ball.x-pegX)<8&&ball.bounces<row+2){
+ball.vx=(Math.random()-0.5)*3;
+ball.bounces++;
+}
+}
+}
+}
+if(ball.y>h*0.5){
+const dx=ball.targetX-ball.x;
+ball.vx+=dx*0.001;
+}
+if(ball.x<20){ball.x=20;ball.vx=Math.abs(ball.vx);}
+if(ball.x>w-20){ball.x=w-20;ball.vx=-Math.abs(ball.vx);}
+
+drawBoard();
+ctx.fillStyle="#ffd700";
+ctx.shadowColor="#ffd700";
+ctx.shadowBlur=15;
+ctx.beginPath();
+ctx.arc(ball.x,ball.y,7,0,Math.PI*2);
+ctx.fill();
+ctx.shadowBlur=0;
+
+if(ball.y<h-30){
+rafId=requestAnimationFrame(animate);
+}else{
+const mult=multipliers[ball.targetSlot];
+const payout=Math.round(currentBet*mult);
+recordGame("plinko",currentBet,payout);
+resultEl.textContent=`${mult}x — ${payout>0?"+"+formatChips(payout):"LOST"} FATE`;
+resultEl.style.color=mult>=1?"var(--green)":"var(--red)";
+resultEl.style.animation="none";
+void resultEl.offsetWidth;
+resultEl.style.animation="popIn .4s cubic-bezier(0.175,0.885,0.32,1.275)";
+if(mult>=1)sound("win");else sound("lose");
+ball=null;
+animating=false;
+dropBtn.disabled=false;
+drawBoard();
+}
+}
+drawBoard();
+animate();
+}
+
+dropBtn.addEventListener("click",dropBall);
+dropBtn.textContent=`RELEASE ORB (${formatChips(currentBet)})`;
+setupBetControls(gsBody,(newBet)=>{
+if(!animating)dropBtn.textContent=`RELEASE ORB (${formatChips(newBet)})`;
+});
+dropBtn.addEventListener("click",()=>{
+dropBtn.textContent=`RELEASE ORB (${formatChips(currentBet)})`;
+});
+
+drawBoard();
+gameCleanup=()=>{
+if(rafId)cancelAnimationFrame(rafId);
+window.removeEventListener("resize",resize);
+};
+}
+
+/* ASCENSION (CRASH) */
+function startCrash(){
+const html=`
+<div class="gs-hint">Watch the fate multiplier climb. Extract before the collapse. The longer you wait, the higher the risk.</div>
+${renderBetControls()}
+<div class="crash-multiplier" id="crash-mult">1.00x</div>
+<canvas class="crash-graph" id="crash-graph"></canvas>
+<button class="bet-btn" id="crash-action" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;margin-top:20px;">BEGIN ASCENT (${formatChips(currentBet)})</button>
+`;
+gsBody.innerHTML=html;
+const multEl=$("crash-mult");
+const actionBtn=$("crash-action");
+const graph=document.getElementById("crash-graph");
+const ctx=graph.getContext("2d");
+
+setupBetControls(gsBody);
+
+let phase="idle";
+let multiplier=1;
+let crashPoint=1;
+let startTime=0;
+let rafId=null;
+let cashedOut=false;
+let bet=currentBet;
+
+function resizeGraph(){
+const rect=graph.getBoundingClientRect();
+const dpr=Math.min(devicePixelRatio||1,2);
+graph.width=rect.width*dpr;
+graph.height=rect.height*dpr;
+ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+setTimeout(resizeGraph,50);
+
+function drawGraph(){
+const w=graph.width/(window.devicePixelRatio||1);
+const h=graph.height/(window.devicePixelRatio||1);
+ctx.clearRect(0,0,w,h);
+
+ctx.strokeStyle="rgba(255,215,0,0.1)";
+ctx.lineWidth=1;
+for(let i=0;i<5;i++){
+ctx.beginPath();ctx.moveTo(0,h*i/4);ctx.lineTo(w,h*i/4);ctx.stroke();
+}
+
+if(phase==="idle")return;
+
+const progress=Math.min(1,(multiplier-1)/8);
+const x=progress*w;
+const y=h-Math.min(h,multiplier/8*h);
+
+ctx.strokeStyle=phase==="crashed"?"#ff4757":"#ffd700";
+ctx.lineWidth=3;
+ctx.shadowColor=ctx.strokeStyle;
+ctx.shadowBlur=10;
+ctx.beginPath();
+ctx.moveTo(0,h);
+for(let i=0;i<=x;i++){
+const t=i/w;
+const m=1+t*8;
+const yy=h-Math.min(h,m/8*h);
+ctx.lineTo(i,yy);
+}
+ctx.stroke();
+ctx.shadowBlur=0;
+
+ctx.fillStyle=phase==="crashed"?"#ff4757":"#ffd700";
+ctx.beginPath();
+ctx.arc(x,y,6,0,Math.PI*2);
+ctx.fill();
+}
+
+function gameLoop(){
+if(phase!=="running")return;
+const elapsed=(performance.now()-startTime)/1000;
+multiplier=1+elapsed*0.4+elapsed*elapsed*0.05;
+multEl.textContent=multiplier.toFixed(2)+"x";
+multEl.classList.remove("crashed");
+
+if(multiplier>=crashPoint){
+phase="crashed";
+multEl.textContent=crashPoint.toFixed(2)+"x";
+multEl.classList.add("crashed");
+sound("crash");
+drawGraph();
+if(!cashedOut){
+recordGame("crash",bet,0);
+notify("COLLAPSED! LOST "+formatChips(bet)+" FATE");
+setTimeout(()=>{showResults("crash","ASCENSION",crashPoint.toFixed(2)+"x",false,-bet,()=>startCrash());},800);
+}else{
+cashedOut=false;
+}
+actionBtn.textContent="BEGIN ASCENT ("+formatChips(currentBet)+")";
+actionBtn.style.background="var(--gold)";
+actionBtn.style.color="#0d0a14";
+return;
+}
+drawGraph();
+rafId=requestAnimationFrame(gameLoop);
+}
+
+function startRound(){
+if(currentBet>state.chips){notify("NOT ENOUGH FATE");return;}
+bet=currentBet;
+state.chips-=bet;
+updateUI();
+phase="running";
+multiplier=1;
+crashPoint=1+Math.random()*Math.random()*10+1;
+startTime=performance.now();
+cashedOut=false;
+actionBtn.textContent="EXTRACT";
+actionBtn.style.background="var(--green)";
+actionBtn.style.color="#0d0a14";
+sound("go");
+gameLoop();
+}
+
+actionBtn.addEventListener("click",()=>{
+if(phase==="idle"){
+startRound();
+}else if(phase==="running"&&!cashedOut){
+cashedOut=true;
+const payout=Math.round(bet*multiplier);
+recordGame("crash",bet,payout);
+sound("win");
+multEl.textContent=multiplier.toFixed(2)+"x";
+actionBtn.textContent="EXTRACTED!";
+actionBtn.style.background="var(--green)";
+actionBtn.disabled=true;
+setTimeout(()=>{
+actionBtn.disabled=false;
+actionBtn.textContent="BEGIN ASCENT ("+formatChips(currentBet)+")";
+actionBtn.style.background="var(--gold)";
+actionBtn.style.color="#0d0a14";
+showResults("crash","ASCENSION",multiplier.toFixed(2)+"x",true,payout-bet,()=>startCrash());
+},600);
+}
+});
+
+setupBetControls(gsBody,(newBet)=>{
+if(phase==="idle")actionBtn.textContent="BEGIN ASCENT ("+formatChips(newBet)+")";
+});
+
+gameCleanup=()=>{
+if(rafId)cancelAnimationFrame(rafId);
+};
+}
+
+/* FATE ROLL (DICE) */
+function startDice(){
+const html=`
+<div class="gs-hint">Predict the outcome. Roll above or below your chosen threshold. Pure probability.</div>
+${renderBetControls()}
+<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">
+<button class="bet-btn" id="dice-mode" type="button">ROLL OVER</button>
+<div style="display:flex;align-items:center;gap:8px;">
+<span style="font-size:10px;color:var(--muted);font-weight:900;">THRESHOLD:</span>
+<input class="bet-input" id="dice-target" type="number" min="2" max="98" value="50" style="width:80px;"/>
+</div>
+</div>
+<div class="dice-container">
+<div class="die" id="die1">🎲</div>
+</div>
+<div style="font-size:14px;color:var(--muted);font-weight:900;margin:16px 0;" id="dice-info">Win chance: 49% · Multiplier: 2x</div>
+<button class="bet-btn" id="dice-roll" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;">ROLL FATE (${formatChips(currentBet)})</button>
+`;
+gsBody.innerHTML=html;
+const die=$("die1");
+const modeBtn=$("dice-mode");
+const targetInput=$("dice-target");
+const info=$("dice-info");
+const rollBtn=$("dice-roll");
+
+setupBetControls(gsBody);
+
+let mode="over";
+let rolling=false;
+
+function updateInfo(){
+const target=parseInt(targetInput.value)||50;
+if(mode==="over"){
+const chance=100-target;
+const mult=Math.round((99/chance)*100)/100;
+info.textContent=`Win chance: ${chance}% · Multiplier: ${mult}x`;
+}else{
+const chance=target-1;
+const mult=Math.round((99/chance)*100)/100;
+info.textContent=`Win chance: ${chance}% · Multiplier: ${mult}x`;
+}
+}
+
+modeBtn.addEventListener("click",()=>{
+mode=mode==="over"?"under":"over";
+modeBtn.textContent=mode==="over"?"ROLL OVER":"ROLL UNDER";
+updateInfo();
+sound("click");
+});
+targetInput.addEventListener("input",updateInfo);
+updateInfo();
+
+rollBtn.addEventListener("click",()=>{
+if(rolling||currentBet>state.chips){if(currentBet>state.chips)notify("NOT ENOUGH FATE");return;}
+rolling=true;
+rollBtn.disabled=true;
+state.chips-=currentBet;
+updateUI();
+sound("chip");
+die.classList.add("rolling");
+
+const roll=Math.floor(Math.random()*100);
+const target=parseInt(targetInput.value)||50;
+
+setTimeout(()=>{
+die.classList.remove("rolling");
+die.textContent=roll;
+let win;
+if(mode==="over")win=roll>target;
+else win=roll<target;
+
+let chance,mul;
+if(mode==="over"){chance=100-target;mul=99/chance;}
+else{chance=target-1;mul=99/chance;}
+mul=Math.round(mul*100)/100;
+
+if(win){
+const payout=Math.round(currentBet*mul);
+recordGame("dice",currentBet,payout);
+sound("win");
+die.style.borderColor="var(--green)";
+die.style.background="rgba(112,239,180,.15)";
+setTimeout(()=>{showResults("dice","FATE ROLL",roll+" — WIN "+mul+"x",true,payout-currentBet,()=>startDice());},500);
+}else{
+recordGame("dice",currentBet,0);
+sound("lose");
+die.style.borderColor="var(--red)";
+die.style.background="rgba(255,71,87,.15)";
+setTimeout(()=>{showResults("dice","FATE ROLL",roll+" — LOST",false,-currentBet,()=>startDice());},500);
+}
+},800);
+});
+
+setupBetControls(gsBody,(newBet)=>{
+if(!rolling)rollBtn.textContent="ROLL FATE ("+formatChips(newBet)+")";
+});
+}
+
+/* HIDDEN CACHES (MINES) */
+function startMines(){
+const html=`
+<div class="gs-hint">Reveal safe caches to increase your yield. Extract before striking a void.</div>
+${renderBetControls()}
+<div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:20px;">
+<span style="font-size:10px;color:var(--muted);font-weight:900;">VOIDS:</span>
+<button class="bet-btn" id="mines-count" type="button" style="padding:8px 16px;">3</button>
+</div>
+<div class="mines-grid" id="mines-grid"></div>
+<div style="font-size:18px;color:var(--gold);font-weight:1000;margin:20px 0;" id="mines-mult">Multiplier: 1.00x</div>
+<button class="bet-btn" id="mines-action" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;">BEGIN (${formatChips(currentBet)})</button>
+`;
+gsBody.innerHTML=html;
+const grid=$("mines-grid");
+const multEl=$("mines-mult");
+const actionBtn=$("mines-action");
+const minesCountBtn=$("mines-count");
+
+setupBetControls(gsBody);
+
+let phase="idle";
+let mineCount=3;
+let mines=[];
+let revealed=[];
+let multiplier=1;
+let gameBet=currentBet;
+
+function getMultiplier(revealedCount){
+const safeTiles=25-mineCount;
+const revealedSafe=revealedCount;
+if(revealedSafe===0)return 1;
+let m=1;
+for(let i=0;i<revealedSafe;i++){
+m*=(25-i)/(safeTiles-i);
+}
+return Math.round(m*100)/100;
+}
+
+function renderGrid(){
+grid.innerHTML="";
+for(let i=0;i<25;i++){
+const cell=document.createElement("div");
+cell.className="mine-cell";
+cell.dataset.idx=i;
+if(revealed.includes(i)){
+cell.classList.add("revealed");
+if(mines.includes(i)){cell.classList.add("mine");cell.textContent="💣";}
+else{cell.classList.add("safe");cell.textContent="💎";}
+}
+cell.addEventListener("click",()=>clickCell(i));
+grid.appendChild(cell);
+}
+}
+
+function clickCell(idx){
+if(phase!=="running")return;
+if(revealed.includes(idx))return;
+revealed.push(idx);
+if(mines.includes(idx)){
+phase="lost";
+renderGrid();
+sound("lose");
+multEl.textContent="VOID STRUCK!";
+multEl.style.color="var(--red)";
+recordGame("mines",gameBet,0);
+setTimeout(()=>{showResults("mines","HIDDEN CACHES","HIT A VOID",false,-gameBet,()=>startMines());},1000);
+}else{
+multiplier=getMultiplier(revealed.length);
+multEl.textContent="Multiplier: "+multiplier.toFixed(2)+"x";
+multEl.style.color="var(--gold)";
+sound("success");
+renderGrid();
+actionBtn.textContent="EXTRACT ("+formatChips(Math.round(gameBet*multiplier))+")";
+actionBtn.style.background="var(--green)";
+}
+}
+
+minesCountBtn.addEventListener("click",()=>{
+if(phase!=="idle")return;
+mineCount=mineCount===3?5:mineCount===5?10:3;
+minesCountBtn.textContent=mineCount;
+sound("click");
+});
+
+actionBtn.addEventListener("click",()=>{
+if(phase==="idle"){
+if(currentBet>state.chips){notify("NOT ENOUGH FATE");return;}
+phase="running";
+gameBet=currentBet;
+state.chips-=gameBet;
+updateUI();
+multiplier=1;
+revealed=[];
+mines=[];
+while(mines.length<mineCount){
+const m=Math.floor(Math.random()*25);
+if(!mines.includes(m))mines.push(m);
+}
+renderGrid();
+multEl.textContent="Multiplier: 1.00x";
+multEl.style.color="var(--gold)";
+actionBtn.textContent="EXTRACT ("+formatChips(gameBet)+")";
+actionBtn.style.background="var(--green)";
+sound("go");
+}else if(phase==="running"){
+if(revealed.length===0)return;
+const payout=Math.round(gameBet*multiplier);
+recordGame("mines",gameBet,payout);
+phase="idle";
+sound("win");
+actionBtn.textContent="BEGIN ("+formatChips(currentBet)+")";
+actionBtn.style.background="var(--gold)";
+showResults("mines","HIDDEN CACHES",multiplier.toFixed(2)+"x",true,payout-gameBet,()=>startMines());
+}
+});
+
+setupBetControls(gsBody,(newBet)=>{
+if(phase==="idle")actionBtn.textContent="BEGIN ("+formatChips(newBet)+")";
+});
+
+renderGrid();
+}
+
+/* ORACLE'S WHEEL */
+function startWheel(){
+const html=`
+<div class="gs-hint">Spin the wheel of fate. Choose your risk level and let destiny decide.</div>
+${renderBetControls()}
+<div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">
+<button class="bet-btn wheel-risk active" data-risk="low" type="button">LOW RISK</button>
+<button class="bet-btn wheel-risk" data-risk="medium" type="button">MEDIUM</button>
+<button class="bet-btn wheel-risk" data-risk="high" type="button">HIGH</button>
+</div>
+<div class="wheel-container">
+<svg class="wheel-svg" id="wheel-svg" viewBox="0 0 200 200">
+<g id="wheel-content"></g>
+<circle cx="100" cy="100" r="95" fill="none" stroke="var(--gold)" stroke-width="3"/>
+<circle cx="100" cy="100" r="12" fill="var(--gold)"/>
+</svg>
+<div class="wheel-pointer">▼</div>
+</div>
+<div style="font-size:20px;color:var(--gold);font-weight:1000;margin:16px 0;min-height:30px;" id="wheel-result"></div>
+<button class="bet-btn" id="wheel-spin" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;">SPIN (${formatChips(currentBet)})</button>
+`;
+gsBody.innerHTML=html;
+const svg=$("wheel-svg");
+const content=$("wheel-content");
+const resultEl=$("wheel-result");
+const spinBtn=$("wheel-spin");
+
+setupBetControls(gsBody);
+
+let risk="low";
+let spinning=false;
+let rotation=0;
+
+const wheelConfigs={
+low:{multipliers:[1.5,1.2,2,0.5,1.5,3,0.5,1.2,2,1.5,1.2,1.5],colors:["#ffd700","#ffb800","#70efb4","#cd7f32","#ffd700","#ff9500","#cd7f32","#a47aff","#70efb4","#ffd700","#ffb800","#ffd700"]},
+medium:{multipliers:[5,0.2,2,0.5,10,0.2,1,3,0.2,5,0.5,2],colors:["#ff9500","#ff4757","#ffd700","#cd7f32","#a47aff","#ff4757","#ffb800","#ff9500","#ff4757","#ff9500","#cd7f32","#ffd700"]},
+high:{multipliers:[50,0.2,10,0.2,25,0.2,5,0.2,50,0.2,10,0.2],colors:["#a47aff","#ff4757","#ff9500","#ff4757","#a47aff","#ff4757","#ff9500","#ff4757","#a47aff","#ff4757","#ff9500","#ff4757"]}
+};
+
+function buildWheel(){
+const cfg=wheelConfigs[risk];
+const n=cfg.multipliers.length;
+const sliceAngle=(Math.PI*2)/n;
+content.innerHTML="";
+for(let i=0;i<n;i++){
+const startAngle=i*sliceAngle-Math.PI/2;
+const endAngle=startAngle+sliceAngle;
+const x1=100+95*Math.cos(startAngle),y1=100+95*Math.sin(startAngle);
+const x2=100+95*Math.cos(endAngle),y2=100+95*Math.sin(endAngle);
+const largeArc=sliceAngle>Math.PI?1:0;
+const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+path.setAttribute("d",`M100,100 L${x1},${y1} A95,95 0 ${largeArc},1 ${x2},${y2} Z`);
+path.setAttribute("fill",cfg.colors[i]);
+path.setAttribute("stroke","#0d0a14");
+path.setAttribute("stroke-width","1");
+content.appendChild(path);
+const midAngle=startAngle+sliceAngle/2;
+const tx=100+60*Math.cos(midAngle),ty=100+60*Math.sin(midAngle);
+const text=document.createElementNS("http://www.w3.org/2000/svg","text");
+text.setAttribute("x",tx);text.setAttribute("y",ty);
+text.setAttribute("text-anchor","middle");text.setAttribute("dominant-baseline","middle");
+text.setAttribute("font-size","11");text.setAttribute("font-weight","900");text.setAttribute("fill","#0d0a14");
+text.textContent=cfg.multipliers[i]+"x";
+content.appendChild(text);
+}
+}
+
+gsBody.querySelectorAll(".wheel-risk").forEach(btn=>{
+btn.addEventListener("click",()=>{
+if(spinning)return;
+gsBody.querySelectorAll(".wheel-risk").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+risk=btn.dataset.risk;
+buildWheel();
+sound("click");
+});
+});
+
+spinBtn.addEventListener("click",()=>{
+if(spinning||currentBet>state.chips){if(currentBet>state.chips)notify("NOT ENOUGH FATE");return;}
+spinning=true;
+spinBtn.disabled=true;
+state.chips-=currentBet;
+updateUI();
+sound("chip");
+resultEl.textContent="";
+
+const cfg=wheelConfigs[risk];
+const n=cfg.multipliers.length;
+const prizeIdx=Math.floor(Math.random()*n);
+const prize=cfg.multipliers[prizeIdx];
+const sliceAngle=360/n;
+const targetAngle=360*6 - (prizeIdx*sliceAngle + sliceAngle/2);
+rotation+=targetAngle;
+svg.style.transition="transform 3.5s cubic-bezier(0.2,0.8,0.2,1)";
+svg.style.transform=`rotate(${rotation}deg)`;
+sound("mystic");
+
+setTimeout(()=>{
+spinning=false;
+spinBtn.disabled=false;
+const payout=Math.round(currentBet*prize);
+recordGame("wheel",currentBet,payout);
+resultEl.textContent=prize+"x — "+(payout>=currentBet?"+"+formatChips(payout-currentBet):formatChips(payout-currentBet))+" FATE";
+resultEl.style.color=prize>=1?"var(--green)":"var(--red)";
+if(prize>=1)sound("win");else sound("lose");
+setTimeout(()=>{showResults("wheel","ORACLE'S WHEEL",prize+"x",prize>=1,payout-currentBet,()=>startWheel());},1000);
+},3700);
+});
+
+setupBetControls(gsBody,(newBet)=>{
+if(!spinning)spinBtn.textContent="SPIN ("+formatChips(newBet)+")";
+});
+
+buildWheel();
+}
+
+/* FATE REELS (SLOTS) */
+function startSlots(){
+const html=`
+<div class="gs-hint">Align the cosmic symbols. Three in a row summons a fortune.</div>
+${renderBetControls()}
+<div class="slots-container">
+<div class="slot-reel" id="reel1">🍒</div>
+<div class="slot-reel" id="reel2">🍒</div>
+<div class="slot-reel" id="reel3">🍒</div>
+</div>
+<div style="font-size:20px;color:var(--gold);font-weight:1000;margin:16px 0;min-height:30px;" id="slots-result"></div>
+<button class="bet-btn" id="slots-spin" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;">ALIGN REELS (${formatChips(currentBet)})</button>
+`;
+gsBody.innerHTML=html;
+const reels=[$("reel1"),$("reel2"),$("reel3")];
+const resultEl=$("slots-result");
+const spinBtn=$("slots-spin");
+
+setupBetControls(gsBody);
+
+const symbols=["🍒","🍋","🍊","🍇","⭐","💎","7️⃣","🔔"];
+const payouts={"🍒":2,"🍋":3,"🍊":4,"🍇":5,"⭐":8,"💎":15,"7️⃣":50,"🔔":100};
+let spinning=false;
+
+spinBtn.addEventListener("click",()=>{
+if(spinning||currentBet>state.chips){if(currentBet>state.chips)notify("NOT ENOUGH FATE");return;}
+spinning=true;
+spinBtn.disabled=true;
+state.chips-=currentBet;
+updateUI();
+sound("chip");
+resultEl.textContent="";
+
+reels.forEach(r=>{r.classList.add("spinning");});
+
+const finalSymbols=[];
+for(let i=0;i<3;i++)finalSymbols.push(symbols[Math.floor(Math.random()*symbols.length)]);
+
+setTimeout(()=>reels[0].classList.remove("spinning"),800);
+setTimeout(()=>reels[1].classList.remove("spinning"),1100);
+setTimeout(()=>reels[2].classList.remove("spinning"),1400);
+
+reels[0].textContent=finalSymbols[0];
+reels[1].textContent=finalSymbols[1];
+reels[2].textContent=finalSymbols[2];
+
+setTimeout(()=>{
+let mult=0;
+if(finalSymbols[0]===finalSymbols[1]&&finalSymbols[1]===finalSymbols[2]){
+mult=payouts[finalSymbols[0]]||2;
+}else if(finalSymbols[0]===finalSymbols[1]||finalSymbols[1]===finalSymbols[2]||finalSymbols[0]===finalSymbols[2]){
+mult=0.5;
+}
+const payout=Math.round(currentBet*mult);
+recordGame("slots",currentBet,payout);
+if(mult>0){
+resultEl.textContent=mult+"x — +"+formatChips(payout)+" FATE";
+resultEl.style.color="var(--green)";
+sound("win");
+reels.forEach(r=>r.style.borderColor="var(--gold)");
+}else{
+resultEl.textContent="NO ALIGNMENT — LOST";
+resultEl.style.color="var(--red)";
+sound("lose");
+}
+spinning=false;
+spinBtn.disabled=false;
+setTimeout(()=>{showResults("slots","FATE REELS",mult>0?mult+"x":"LOSS",mult>0,payout-currentBet,()=>startSlots());},1000);
+},1600);
+});
+
+setupBetControls(gsBody,(newBet)=>{
+if(!spinning)spinBtn.textContent="ALIGN REELS ("+formatChips(newBet)+")";
+});
+}
+
+/* NUMBER SEER (KENO) */
+function startKeno(){
+const html=`
+<div class="gs-hint">Mark your chosen numbers. The cosmos reveals 20. Match as many as fate allows.</div>
+${renderBetControls()}
+<div class="keno-grid" id="keno-grid"></div>
+<div style="font-size:16px;color:var(--gold);font-weight:900;margin:16px 0;" id="keno-info">Picked: 0/10</div>
+<button class="bet-btn" id="keno-play" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;" disabled>PICK NUMBERS</button>
+`;
+gsBody.innerHTML=html;
+const grid=$("keno-grid");
+const info=$("keno-info");
+const playBtn=$("keno-play");
+
+setupBetControls(gsBody);
+
+let picked=[];
+let phase="pick";
+let drawn=[];
+
+for(let i=1;i<=80;i++){
+const cell=document.createElement("div");
+cell.className="keno-cell";
+cell.textContent=i;
+cell.dataset.num=i;
+cell.addEventListener("click",()=>{
+if(phase!=="pick")return;
+if(picked.includes(i)){
+picked=picked.filter(x=>x!==i);
+cell.classList.remove("selected");
+}else{
+if(picked.length>=10)return;
+picked.push(i);
+cell.classList.add("selected");
+}
+info.textContent=`Picked: ${picked.length}/10`;
+playBtn.disabled=picked.length===0;
+playBtn.textContent=picked.length>0?`SEEK (${formatChips(currentBet)})`:"PICK NUMBERS";
+sound("click");
+});
+grid.appendChild(cell);
+}
+
+playBtn.addEventListener("click",()=>{
+if(picked.length===0||phase!=="pick"||currentBet>state.chips){if(currentBet>state.chips)notify("NOT ENOUGH FATE");return;}
+phase="draw";
+playBtn.disabled=true;
+state.chips-=currentBet;
+updateUI();
+sound("chip");
+
+drawn=[];
+const pool=[];
+for(let i=1;i<=80;i++)pool.push(i);
+for(let i=0;i<20;i++){
+const idx=Math.floor(Math.random()*pool.length);
+drawn.push(pool[idx]);
+pool.splice(idx,1);
+}
+
+let i=0;
+const drawInterval=setInterval(()=>{
+if(i>=20){
+clearInterval(drawInterval);
+endKeno();
+return;
+}
+const num=drawn[i];
+const cell=grid.querySelector(`[data-num="${num}"]`);
+if(cell){
+cell.classList.add("drawn");
+if(picked.includes(num))cell.classList.add("hit");
+}
+sound("tick");
+i++;
+},150);
+});
+
+function endKeno(){
+const matches=picked.filter(n=>drawn.includes(n)).length;
+const mults={0:0,1:0,2:0.5,3:1,4:2,5:5,6:10,7:25,8:50,9:100,10:500};
+const mult=mults[matches]||0;
+const payout=Math.round(currentBet*mult);
+recordGame("keno",currentBet,payout);
+info.innerHTML=`<span style="color:var(--gold)">Matched ${matches}/20 — ${mult}x</span>`;
+if(mult>0)sound("win");else sound("lose");
+setTimeout(()=>{showResults("keno","NUMBER SEER",matches+"/20 matches",mult>0,payout-currentBet,()=>startKeno());},1200);
+}
+
+setupBetControls(gsBody,(newBet)=>{
+if(phase==="pick"&&picked.length>0)playBtn.textContent=`SEEK (${formatChips(newBet)})`;
+});
+}
+
+/* FATE'S HAND (BLACKJACK) */
+function startBlackjack(){
+const html=`
+<div class="gs-hint">Challenge the oracle to 21. Aces count as 1 or 11. Blackjack pays 3:2.</div>
+${renderBetControls()}
+<div class="bj-table">
+<div style="font-size:10px;color:var(--muted);font-weight:900;letter-spacing:1px;">ORACLE</div>
+<div class="bj-hand" id="dealer-hand"></div>
+<div class="bj-score" id="dealer-score">—</div>
+<div style="font-size:10px;color:var(--muted);font-weight:900;letter-spacing:1px;margin-top:16px;">YOU</div>
+<div class="bj-hand" id="player-hand"></div>
+<div class="bj-score" id="player-score">—</div>
+</div>
+<div style="display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap;" id="bj-actions">
+<button class="bet-btn" id="bj-deal" type="button" style="padding:14px 36px;font-size:12px;background:var(--gold);color:#0d0a14;">DEAL (${formatChips(currentBet)})</button>
+</div>
+<div style="font-size:16px;color:var(--gold);font-weight:900;margin-top:16px;min-height:24px;" id="bj-result"></div>
+`;
+gsBody.innerHTML=html;
+const dealerHand=$("dealer-hand");
+const playerHand=$("player-hand");
+const dealerScore=$("dealer-score");
+const playerScore=$("player-score");
+const actions=$("bj-actions");
+const resultEl=$("bj-result");
+const dealBtn=$("bj-deal");
+
+setupBetControls(gsBody);
+
+let deck=[];
+let playerCards=[];
+let dealerCards=[];
+let phase="idle";
+let gameBet=currentBet;
+
+function newDeck(){
+deck=[];
+const suits=["♠","♥","♦","♣"];
+const ranks=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+for(const s of suits)for(const r of ranks)deck.push({rank:r,suit:s});
+for(let i=deck.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[deck[i],deck[j]]=[deck[j],deck[i]];
+}
+}
+
+function cardValue(card){
+if(card.rank==="A")return 11;
+if(["J","Q","K"].includes(card.rank))return 10;
+return parseInt(card.rank);
+}
+
+function handValue(cards){
+let total=0,aces=0;
+for(const c of cards){
+total+=cardValue(c);
+if(c.rank==="A")aces++;
+}
+while(total>21&&aces>0){total-=10;aces--;}
+return total;
+}
+
+function renderCard(card,hidden){
+const el=document.createElement("div");
+el.className="bj-card";
+if(hidden){el.classList.add("hidden");el.textContent="?";}
+else{
+if(card.suit==="♥"||card.suit==="♦")el.classList.add("red");
+el.innerHTML=`<div>${card.rank}</div><div style="font-size:22px">${card.suit}</div>`;
+}
+return el;
+}
+
+function renderHands(){
+dealerHand.innerHTML="";
+playerHand.innerHTML="";
+dealerCards.forEach((c,i)=>{
+const hidden=(phase==="player"&&i===1);
+dealerHand.appendChild(renderCard(c,hidden));
+});
+playerCards.forEach(c=>playerHand.appendChild(renderCard(c,false)));
+if(phase==="player"){
+dealerScore.textContent=cardValue(dealerCards[0])+" + ?";
+}else{
+dealerScore.textContent=handValue(dealerCards);
+}
+playerScore.textContent=handValue(playerCards);
+}
+
+function startRound(){
+if(currentBet>state.chips){notify("NOT ENOUGH FATE");return;}
+gameBet=currentBet;
+state.chips-=gameBet;
+updateUI();
+newDeck();
+playerCards=[deck.pop(),deck.pop()];
+dealerCards=[deck.pop(),deck.pop()];
+phase="player";
+renderHands();
+resultEl.textContent="";
+sound("click");
+
+actions.innerHTML=`
+<button class="bet-btn" id="bj-hit" type="button" style="padding:12px 28px;">DRAW</button>
+<button class="bet-btn" id="bj-stand" type="button" style="padding:12px 28px;">STAND</button>
+`;
+$("bj-hit").addEventListener("click",()=>{
+if(phase!=="player")return;
+playerCards.push(deck.pop());
+renderHands();
+sound("tick");
+if(handValue(playerCards)>21){
+endRound("bust");
+}
+});
+$("bj-stand").addEventListener("click",()=>{
+if(phase!=="player")return;
+phase="dealer";
+renderHands();
+dealerPlay();
+});
+}
+
+function dealerPlay(){
+if(handValue(dealerCards)<17){
+dealerCards.push(deck.pop());
+renderHands();
+sound("tick");
+setTimeout(dealerPlay,500);
+}else{
+endRound("compare");
+}
+}
+
+function endRound(reason){
+phase="done";
+renderHands();
+const pv=handValue(playerCards);
+const dv=handValue(dealerCards);
+let payout=0;
+let msg="";
+
+if(reason==="bust"){
+msg="BUST! You went over 21.";
+payout=0;
+}else if(reason==="compare"){
+if(dv>21){msg="ORACLE BUSTS! You win!";payout=Math.round(gameBet*2);}
+else if(pv>dv){msg="YOU WIN!";payout=Math.round(gameBet*2);}
+else if(pv===dv){msg="PUSH — Fate returned.";payout=gameBet;}
+else{msg="ORACLE WINS.";payout=0;}
+}
+
+recordGame("blackjack",gameBet,payout);
+
+if(payout>gameBet){sound("win");resultEl.style.color="var(--green)";}
+else if(payout===gameBet){resultEl.style.color="var(--gold)";}
+else{sound("lose");resultEl.style.color="var(--red)";}
+resultEl.textContent=msg;
+
+setTimeout(()=>{
+showResults("blackjack","FATE'S HAND",msg,payout>gameBet,payout-gameBet,()=>startBlackjack());
+},1200);
+}
+
+dealBtn.addEventListener("click",startRound);
+
+setupBetControls(gsBody,(newBet)=>{
+if(phase==="idle"||phase==="done")dealBtn.textContent="DEAL ("+formatChips(newBet)+")";
+});
+}
+
+/* COPY PROTECTION */
+document.addEventListener('copy', (e) => {
+if (document.getElementById("num-display") && document.getElementById("num-display").textContent !== "?") {
+let fakeNum = "";
+for (let i = 0; i < 15; i++) fakeNum += Math.floor(Math.random() * 10);
+e.clipboardData.setData('text/plain', fakeNum);
+e.preventDefault();
+notify("COPYING DISABLED");
+}
+});
+</script>
+</body>
+</html>
