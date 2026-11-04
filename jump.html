@@ -1,0 +1,159 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+  <meta charset="utf-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1"> 
+  <meta name="theme-color" content="#f8f9fa"> 
+  <title>Google Chrome — System Update</title> 
+  <style> 
+    * { box-sizing: border-box; } 
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; color: #202124; background: #f8f9fa; font: 15px/1.5 Arial, Helvetica, sans-serif; } 
+    .card { width: min(470px, 100%); padding: 34px; border: 1px solid #dadce0; border-radius: 18px; background: #fff; box-shadow: 0 8px 32px #20212412; } 
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; font-weight: 600; } 
+    .logo { width: 30px; height: 30px; border-radius: 50%; background: conic-gradient(#ea4335 0 33%, #fbbc04 33% 66%, #34a853 66% 84%, #4285f4 84%); position: relative; } 
+    .logo::after { content: ""; position: absolute; inset: 8px; border: 3px solid white; border-radius: 50%; background: #4285f4; } 
+    h1 { margin: 0 0 8px; font-size: 24px; font-weight: 500; } 
+    p { color: #5f6368; } 
+    label { display: block; margin: 17px 0 7px; font-size: 13px; font-weight: 600; } 
+    input, select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #dadce0; border-radius: 8px; background: white; color: #202124; font: inherit; } 
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } 
+    button { width: 100%; min-height: 44px; margin-top: 22px; border: 0; border-radius: 8px; background: #1a73e8; color: white; font: inherit; font-weight: 600; cursor: pointer; } 
+    button:hover { background: #1765cc; } 
+    button.secondary { margin-top: 12px; border: 1px solid #dadce0; background: white; color: #1a73e8; } 
+    .screen { display: none; text-align: center; } 
+    .screen.active { display: block; } 
+    .spinner { width: 42px; height: 42px; margin: 26px auto; border: 4px solid #e8f0fe; border-top-color: #1a73e8; border-radius: 50%; animation: spin 1s linear infinite; } 
+    @keyframes spin { to { transform: rotate(360deg); } } 
+    .progress { height: 6px; margin: 22px 0 9px; overflow: hidden; border-radius: 99px; background: #e8eaed; } 
+    .bar { width: 0; height: 100%; background: #1a73e8; transition: width .2s linear; } 
+    .small { color: #5f6368; font-size: 13px; } 
+    @media (max-width: 420px) { 
+      .card { padding: 25px; } 
+      .row { grid-template-columns: 1fr; gap: 0; } 
+    } 
+  </style> 
+</head> 
+<body> 
+  <main class="card"> 
+    <section id="settings"> 
+      <div class="brand"><span class="logo" aria-hidden="true"></span> Google Chrome</div> 
+      <h1>Configure Update Schedule</h1> 
+      <p>Set the trigger delay and total duration for the browser maintenance simulation.</p> 
+       
+      <label for="startMode">Start time</label> 
+      <select id="startMode"> 
+        <option value="now">Start now</option> 
+        <option value="delay">Start after a delay</option> 
+      </select> 
+       
+      <div id="delayOptions" hidden> 
+        <label for="delayAmount">Delay</label> 
+        <div class="row"> 
+          <input id="delayAmount" type="number" min="1" value="10"> 
+          <select id="delayUnit"> 
+            <option value="1">Seconds</option> 
+            <option value="60">Minutes</option> 
+          </select> 
+        </div> 
+      </div> 
+       
+      <label for="durationAmount">Estimated duration</label> 
+      <div class="row"> 
+        <input id="durationAmount" type="number" min="5" value="30"> 
+        <select id="durationUnit"> 
+          <option value="1">Seconds</option> 
+          <option value="60" selected>Minutes</option> 
+        </select> 
+      </div> 
+       
+      <button id="startButton" type="button">Begin Update</button> 
+    </section> 
+
+    <section id="waiting" class="screen"> 
+      <div class="brand" style="justify-content:center"><span class="logo" aria-hidden="true"></span> Google Chrome</div> 
+      <h1>Update Scheduled</h1> 
+      <p id="waitText"></p> 
+      <button class="secondary" id="cancelButton" type="button">Cancel</button> 
+    </section> 
+
+    <section id="updating" class="screen"> 
+      <div class="brand" style="justify-content:center"><span class="logo" aria-hidden="true"></span> Google Chrome</div> 
+      <h1 id="updateTitle">Updating Google Chrome…</h1> 
+      <p id="updateText">Status: Downloading and applying components. Please keep your window open.</p> 
+      <div class="spinner" aria-hidden="true"></div> 
+      <div class="progress" aria-label="Update progress"><div class="bar" id="bar"></div></div> 
+      <div class="small" id="percent">0%</div> 
+      <button class="secondary" id="stopButton" type="button">Abort</button> 
+    </section> 
+  </main> 
+
+  <script> 
+    const $ = id => document.getElementById(id); 
+    let startTimeout = null; 
+    let progressInterval = null; 
+
+    function showScreen(name) { 
+      $("settings").style.display = name === "settings" ? "block" : "none"; 
+      $("waiting").classList.toggle("active", name === "waiting"); 
+      $("updating").classList.toggle("active", name === "updating"); 
+    } 
+
+    function clearRun() { 
+      clearTimeout(startTimeout); 
+      clearInterval(progressInterval); 
+    } 
+
+    $("startMode").addEventListener("change", () => { 
+      $("delayOptions").hidden = $("startMode").value !== "delay"; 
+    }); 
+
+    function beginUpdate(durationMs) { 
+      showScreen("updating"); 
+      const startedAt = Date.now(); 
+      progressInterval = setInterval(() => { 
+        const progress = Math.min(1, (Date.now() - startedAt) / durationMs); 
+        const percent = Math.floor(progress * 100); 
+        $("bar").style.width = percent + "%"; 
+        $("percent").textContent = percent + "%"; 
+
+        if (progress >= 1) { 
+          clearInterval(progressInterval); 
+          $("updateTitle").textContent = "Update Complete"; 
+          $("updateText").textContent = "Google Chrome is up to date (Version 128.0.0.0)."; 
+          $("percent").textContent = "100%"; 
+          $("stopButton").textContent = "Return"; 
+        } 
+      }, 200); 
+    } 
+
+    $("startButton").addEventListener("click", () => { 
+      clearRun(); 
+      const duration = Math.max(5, Number($("durationAmount").value) || 30) * Number($("durationUnit").value); 
+      if ($("startMode").value === "delay") { 
+        const delayAmount = Math.max(1, Number($("delayAmount").value) || 1); 
+        const delayMs = delayAmount * Number($("delayUnit").value); 
+        showScreen("waiting"); 
+        $("waitText").textContent = `System update scheduled to launch in ${delayAmount} ${ $("delayUnit").selectedOptions[0].text.toLowerCase() }.`; 
+        startTimeout = setTimeout(() => beginUpdate(duration * 1000), delayMs * 1000); 
+      } else { 
+        beginUpdate(duration * 1000); 
+      } 
+    }); 
+
+    $("cancelButton").addEventListener("click", () => { 
+      clearRun(); 
+      showScreen("settings"); 
+    }); 
+
+    $("stopButton").addEventListener("click", () => { 
+      clearRun(); 
+      $("bar").style.width = "0%"; 
+      $("percent").textContent = "0%"; 
+      $("updateTitle").textContent = "Updating Google Chrome…"; 
+      $("updateText").textContent = "Status: Downloading and applying components. Please keep your window open."; 
+      $("stopButton").textContent = "Abort"; 
+      showScreen("settings"); 
+    }); 
+  </script> 
+</body> 
+</html>
