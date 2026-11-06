@@ -1,195 +1,1305 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080911">
-  <title>SWIRL — Start Test</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #080911;
-      --text: #f4f5fb;
-      --muted: #9b9eaf;
-      --cyan: #35ffe8;
-      --purple: #a47aff;
-      --gold: #ffd16c;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rocks &amp; the Rock Cycle | Year 8 Science</title>
 
-    * { box-sizing: border-box; }
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23246b50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/%3E%3C/svg%3E">
 
-    body {
-      min-height: 100vh;
-      margin: 0;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      color: var(--text);
-      background:
-        radial-gradient(ellipse at 15% 15%, rgba(115,73,208,.24), transparent 40%),
-        radial-gradient(ellipse at 85% 85%, rgba(28,195,216,.14), transparent 42%),
-        var(--bg);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-    }
+<style>
+:root {
+--ink: #202a27;
+--muted: #68736d;
+--green: #246b50;
+--green-dark: #184a38;
+--cream: #f4f2ed;
+--paper: #fffefa;
+--line: #e5e7df;
+--gold: #f2c66d;
+--red: #d32f2f;
+}
 
-    .stars {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        radial-gradient(1px 1px at 12% 22%, #ffffffaa 50%, transparent),
-        radial-gradient(1px 1px at 78% 17%, #ffffff99 50%, transparent),
-        radial-gradient(2px 2px at 55% 72%, #35ffe888 50%, transparent),
-        radial-gradient(1px 1px at 88% 63%, #ffffffaa 50%, transparent),
-        radial-gradient(1px 1px at 30% 84%, #a47affaa 50%, transparent),
-        radial-gradient(1px 1px at 42% 34%, #ffffff77 50%, transparent);
-      background-size: 320px 320px;
-      animation: drift 40s linear infinite;
-    }
+* { box-sizing: border-box; }
 
-    .glow {
-      position: fixed;
-      width: min(70vw, 620px);
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--purple), var(--cyan));
-      filter: blur(130px);
-      opacity: .12;
-      pointer-events: none;
-    }
+body {
+margin: 0;
+min-height: 100vh;
+color: var(--ink);
+background:
+radial-gradient(circle at 8% 8%, #e1eadf 0, transparent 29rem),
+radial-gradient(circle at 95% 70%, #efe7d5 0, transparent 25rem),
+var(--cream);
+font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+cursor: none;
+}
 
-    main {
-      position: relative;
-      width: min(680px, calc(100% - 32px));
-      padding: clamp(34px, 8vw, 70px) 24px;
-      text-align: center;
-      border: 1px solid rgba(255,255,255,.11);
-      border-radius: 28px;
-      background: rgba(18,20,33,.62);
-      box-shadow: 0 30px 100px rgba(0,0,0,.44);
-      backdrop-filter: blur(16px);
-      animation: arrive .8s ease-out both;
-    }
+.cursor-dot {
+position: fixed;
+z-index: 1000;
+top: 0;
+left: 0;
+width: 9px;
+height: 9px;
+border: 2px solid var(--green);
+border-radius: 50%;
+background: var(--gold);
+pointer-events: none;
+transform: translate(-50%, -50%);
+box-shadow: 0 0 12px #246b5066;
+transition: transform 0.1s ease, background 0.2s;
+}
 
-    .logo {
-      margin: 0;
-      font-size: clamp(48px, 12vw, 82px);
-      font-weight: 950;
-      letter-spacing: -.08em;
-      line-height: 1;
-      background: linear-gradient(120deg, var(--cyan), var(--gold));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      filter: drop-shadow(0 0 26px rgba(53,255,232,.2));
-    }
+body.cursor-hover .cursor-dot {
+transform: translate(-50%, -50%) scale(1.5);
+background: white;
+}
 
-    .eyebrow {
-      margin: 18px 0 0;
-      color: var(--muted);
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .35em;
-      text-transform: uppercase;
-    }
+button, label, input, textarea, select, .custom-select-trigger, .custom-option { cursor: none; }
 
-    h2 {
-      margin: 34px 0 10px;
-      font-size: clamp(24px, 5vw, 36px);
-      letter-spacing: -.04em;
-    }
+.page {
+width: min(850px, calc(100% - 32px));
+margin: 0 auto;
+padding: 24px 0 60px;
+}
 
-    .description {
-      max-width: 430px;
-      margin: 0 auto;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.7;
-    }
+.topline {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 18px;
+color: var(--muted);
+font-size: 12px;
+font-weight: 750;
+letter-spacing: .12em;
+text-transform: uppercase;
+}
 
-    .start-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 13px;
-      min-width: min(330px, 100%);
-      margin-top: 36px;
-      padding: 20px 32px;
-      border: 1px solid var(--cyan);
-      border-radius: 15px;
-      color: #071113;
-      background: linear-gradient(115deg, var(--cyan), #75f6db);
-      box-shadow: 0 0 35px rgba(53,255,232,.19);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 950;
-      letter-spacing: .16em;
-      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
-    }
+.brand { color: var(--green-dark); }
 
-    .start-button:hover {
-      transform: translateY(-3px) scale(1.025);
-      box-shadow: 0 12px 45px rgba(53,255,232,.32);
-      filter: brightness(1.08);
-    }
+.hero, .question, .results {
+border: 1px solid rgba(35, 66, 49, .1);
+border-radius: 22px;
+background: rgba(255, 254, 250, .94);
+box-shadow: 0 18px 55px rgba(32, 42, 39, .1);
+}
 
-    .start-button:active { transform: scale(.98); }
+.hero {
+position: relative;
+overflow: hidden;
+padding: clamp(30px, 7vw, 60px);
+background: linear-gradient(125deg, #fffefa, #edf5ed);
+}
 
-    .arrow {
-      font-size: 21px;
-      line-height: 0;
-      transition: transform .2s ease;
-    }
+.hero::after {
+position: absolute;
+top: -95px;
+right: -55px;
+width: 250px;
+height: 250px;
+border: 1px solid #246b5022;
+border-radius: 50%;
+box-shadow: 0 0 0 24px #246b5008, 0 0 0 50px #246b5006;
+content: "";
+pointer-events: none;
+}
 
-    .start-button:hover .arrow { transform: translateX(4px); }
+.tag {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+padding: 8px 12px;
+border: 1px solid #246b5022;
+border-radius: 999px;
+color: var(--green-dark);
+background: white;
+font-size: 11px;
+font-weight: 800;
+letter-spacing: .1em;
+text-transform: uppercase;
+}
 
-    .note {
-      margin: 17px 0 0;
-      color: #777b8e;
-      font-size: 10px;
-      letter-spacing: .12em;
-    }
+.tag svg { width: 14px; height: 14px; fill: currentColor; }
 
-    @keyframes drift {
-      to { background-position: 320px 160px; }
-    }
+h1 {
+position: relative;
+z-index: 1;
+max-width: 620px;
+margin: 20px 0 10px;
+font-family: Georgia, "Times New Roman", serif;
+font-size: clamp(42px, 9vw, 74px);
+line-height: .97;
+letter-spacing: -.05em;
+}
 
-    @keyframes arrive {
-      from { opacity: 0; transform: translateY(14px) scale(.985); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
+.intro {
+position: relative;
+z-index: 1;
+max-width: 570px;
+margin: 16px 0 0;
+color: var(--muted);
+font-size: 15px;
+line-height: 1.7;
+}
 
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-      }
-    }
-  </style>
+.credit {
+margin-top: 24px;
+color: var(--green-dark);
+font-size: 12px;
+font-weight: 750;
+letter-spacing: .06em;
+}
+
+.primary-button, .finish-button {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+min-width: 220px;
+margin-top: 27px;
+padding: 16px 23px;
+border: 0;
+border-radius: 13px;
+color: white;
+background: var(--green-dark);
+box-shadow: 0 10px 25px #184a3830;
+font: inherit;
+font-size: 14px;
+font-weight: 850;
+letter-spacing: .07em;
+text-transform: uppercase;
+transition: transform .18s, background .18s;
+}
+
+.primary-button svg, .finish-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+.primary-button:hover, .finish-button:hover {
+transform: translateY(-2px);
+background: var(--green);
+}
+
+#testPage { display: none; }
+
+.progress-wrap { margin: 24px 2px 10px; }
+
+.progress-label {
+display: flex;
+justify-content: space-between;
+margin-bottom: 8px;
+color: var(--muted);
+font-size: 12px;
+font-weight: 700;
+}
+
+.progress-track {
+height: 7px;
+overflow: hidden;
+border-radius: 99px;
+background: #dfe6dc;
+}
+
+.progress-fill {
+width: 0;
+height: 100%;
+border-radius: inherit;
+background: linear-gradient(90deg, var(--green), #8bad70);
+transition: width .25s ease;
+}
+
+.question {
+margin-top: 16px;
+padding: clamp(20px, 4vw, 30px);
+}
+
+.question-head {
+display: flex;
+align-items: flex-start;
+gap: 13px;
+margin-bottom: 18px;
+}
+
+.number {
+display: grid;
+flex: 0 0 34px;
+width: 34px;
+height: 34px;
+place-items: center;
+border-radius: 11px;
+color: white;
+background: var(--green);
+font-size: 13px;
+font-weight: 850;
+}
+
+.question h2 {
+margin: 2px 0 0;
+font-size: clamp(17px, 3.5vw, 20px);
+line-height: 1.45;
+}
+
+.hint {
+margin: -7px 0 16px 47px;
+color: var(--muted);
+font-size: 13px;
+line-height: 1.6;
+}
+
+.options { display: grid; gap: 10px; }
+
+.option {
+display: flex;
+align-items: center;
+gap: 12px;
+min-height: 52px;
+padding: 13px 15px;
+border: 1px solid var(--line);
+border-radius: 13px;
+background: white;
+transition: border-color .18s, background .18s, transform .18s;
+}
+
+.option:hover:not(.locked) {
+transform: translateY(-1px);
+border-color: #8aaf91;
+background: #f8fbf7;
+}
+
+.option:has(input:checked) {
+border-color: var(--green);
+background: #eaf3ec;
+}
+
+.option input {
+width: 17px;
+height: 17px;
+accent-color: var(--green);
+}
+
+.option.locked {
+pointer-events: none;
+opacity: 0.6;
+background: #f0f0f0;
+border-color: #ccc;
+}
+.option.locked:has(input:checked) {
+opacity: 0.9;
+background: #eaf3ec;
+border-color: var(--green);
+}
+
+textarea {
+width: 100%;
+min-height: 120px;
+resize: vertical;
+padding: 14px 15px;
+border: 1px solid var(--line);
+border-radius: 13px;
+outline: none;
+color: var(--ink);
+background: white;
+font: inherit;
+line-height: 1.6;
+}
+
+textarea:focus {
+border-color: var(--green);
+box-shadow: 0 0 0 3px #246b5018;
+}
+
+.bedrock-card {
+display: grid;
+grid-template-columns: minmax(0, 1fr) minmax(240px, 1fr);
+gap: 20px;
+align-items: center;
+margin-bottom: 18px;
+padding: 16px;
+border: 1px solid #dfe5d8;
+border-radius: 16px;
+background: #f5f6f0;
+}
+
+.bedrock-card h3 {
+margin: 0 0 7px;
+color: var(--green-dark);
+font-family: Georgia, "Times New Roman", serif;
+font-size: 22px;
+}
+
+.bedrock-card p {
+margin: 0;
+color: #56635a;
+font-size: 13px;
+line-height: 1.6;
+}
+
+.rock-image {
+display: block;
+width: 100%;
+height: auto;
+aspect-ratio: 1;
+border: 2px solid #c5cbc0;
+border-radius: 12px;
+background: #e3e4dc;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.rock-key-card {
+padding: 16px;
+border-radius: 14px;
+background: #f5f6f0;
+color: #445148;
+font-size: 13px;
+line-height: 1.6;
+margin-bottom: 18px;
+border: 1px solid #dfe5d8;
+}
+.rock-key-card h4 {
+margin: 0 0 10px 0;
+color: var(--green-dark);
+font-size: 14px;
+font-weight: 800;
+}
+.rock-key-step {
+display: flex;
+gap: 10px;
+margin-bottom: 6px;
+}
+.rock-key-step strong {
+color: var(--green);
+}
+
+.paper-task {
+padding: 16px;
+border: 1px dashed #a9b99f;
+border-radius: 14px;
+background: #f5f6f0;
+color: #445148;
+font-size: 13px;
+line-height: 1.6;
+}
+
+.paper-task strong {
+display: flex;
+align-items: center;
+gap: 6px;
+margin-bottom: 7px;
+color: var(--green-dark);
+}
+
+.paper-task svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+.paper-task p { margin: 0; }
+
+/* Custom Dropdown */
+.custom-select-wrapper {
+position: relative;
+margin-top: 16px;
+user-select: none;
+}
+
+.custom-select-trigger {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 16px 20px;
+border: 1px solid var(--line);
+border-radius: 13px;
+background: white;
+font-size: 15px;
+font-weight: 600;
+transition: border-color .18s, box-shadow .18s;
+}
+
+.custom-select-trigger:hover {
+border-color: #8aaf91;
+}
+
+.custom-select-wrapper.open .custom-select-trigger {
+border-color: var(--green);
+box-shadow: 0 0 0 3px #246b5018;
+}
+
+.custom-select-trigger::after {
+content: "▼";
+font-size: 10px;
+color: var(--green);
+transition: transform .2s;
+}
+
+.custom-select-wrapper.open .custom-select-trigger::after {
+transform: rotate(180deg);
+}
+
+.custom-options {
+position: absolute;
+top: calc(100% + 8px);
+left: 0;
+right: 0;
+background: white;
+border: 1px solid var(--line);
+border-radius: 13px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+opacity: 0;
+visibility: hidden;
+transform: translateY(-10px);
+transition: all .2s;
+z-index: 100;
+overflow: hidden;
+}
+
+.custom-select-wrapper.open .custom-options {
+opacity: 1;
+visibility: visible;
+transform: translateY(0);
+}
+
+.custom-option {
+padding: 14px 20px;
+font-size: 15px;
+transition: background .15s;
+}
+
+.custom-option:hover {
+background: #f0f7f2;
+color: var(--green-dark);
+}
+
+.custom-option.selected {
+background: #eaf3ec;
+color: var(--green-dark);
+font-weight: 700;
+}
+
+.feedback {
+display: none;
+margin-top: 14px;
+padding: 13px 15px;
+border-radius: 12px;
+font-size: 13px;
+line-height: 1.6;
+}
+
+.feedback.show { display: block; }
+.feedback.good { color: #21563e; background: #eaf5eb; }
+.feedback.neutral { color: #665222; background: #fbf3df; }
+
+/* Custom Warning Popup */
+.custom-warning {
+position: fixed;
+top: 20px;
+left: 50%;
+transform: translateX(-50%) translateY(-20px);
+background: var(--red);
+color: white;
+padding: 12px 24px;
+border-radius: 8px;
+font-size: 14px;
+font-weight: 700;
+box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+opacity: 0;
+pointer-events: none;
+transition: all 0.3s ease;
+z-index: 9999;
+}
+.custom-warning.show {
+opacity: 1;
+transform: translateX(-50%) translateY(0);
+}
+
+/* Animations */
+.anim-btn {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+margin-top: 12px;
+padding: 10px 16px;
+background: #eaf3ec;
+color: var(--green-dark);
+border: 1px solid #b6cbb1;
+border-radius: 8px;
+font-size: 12px;
+font-weight: 800;
+transition: all 0.2s;
+}
+.anim-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.anim-btn:hover:not(:disabled) {
+background: var(--green);
+color: white;
+}
+.anim-btn:disabled {
+opacity: 0.5;
+cursor: not-allowed;
+}
+
+.anim-container {
+display: none;
+margin-top: 15px;
+padding: 20px;
+background: white;
+border-radius: 13px;
+border: 1px solid var(--line);
+text-align: center;
+animation: fadeIn 0.5s ease;
+}
+.anim-container.show {
+display: block;
+}
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(-5px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.anim-container h4 {
+margin: 0 0 10px 0;
+color: var(--green-dark);
+font-size: 14px;
+font-weight: 800;
+}
+.anim-container p {
+font-size: 12px;
+color: var(--muted);
+margin-bottom: 15px;
+}
+
+/* SVG Animations */
+.sand-grain { animation: compress 3s infinite alternate ease-in-out; transform-origin: center; }
+.cement { animation: flow 3s infinite alternate ease-in-out; }
+.rock-layer { animation: fold 4s infinite alternate ease-in-out; }
+
+@keyframes compress {
+0% { transform: translateY(0); }
+100% { transform: translateY(10px); }
+}
+@keyframes flow {
+0% { opacity: 0.2; }
+100% { opacity: 1; }
+}
+@keyframes fold {
+0% { transform: skewX(0deg); }
+100% { transform: skewX(15deg) translateY(-5px); }
+}
+
+.actions {
+display: flex;
+justify-content: center;
+padding: 25px 0 8px;
+}
+
+.results {
+display: none;
+margin-top: 18px;
+padding: 25px;
+border-color: #b6cbb1;
+background: #f4f8ef;
+}
+
+.results.show { display: block; }
+
+.results h2 {
+margin: 0 0 8px;
+display: flex;
+align-items: center;
+gap: 8px;
+font-family: Georgia, "Times New Roman", serif;
+font-size: 28px;
+}
+
+.results p {
+color: #526057;
+line-height: 1.65;
+}
+
+.result-score {
+color: var(--green-dark) !important;
+font-size: 19px;
+font-weight: 850;
+}
+
+.credit-line {
+padding-top: 22px;
+color: #7a827a;
+text-align: center;
+font-size: 11px;
+letter-spacing: .05em;
+}
+
+@media (pointer: coarse) {
+body, button, label, input, textarea, .custom-select-trigger, .custom-option { cursor: auto; }
+.cursor-dot { display: none; }
+}
+
+@media (max-width: 600px) {
+.bedrock-card { grid-template-columns: 1fr; }
+}
+</style>
 </head>
+
 <body>
-  <div class="stars" aria-hidden="true"></div>
-  <div class="glow" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursor" aria-hidden="true"></div>
+<div class="custom-warning" id="warningPopup">Please select an answer first!</div>
 
-  <main>
-    <h1 class="logo">SWIRL</h1>
-    <p class="eyebrow">Your test starts here</p>
+<main class="page">
+<div class="topline">
+<span class="brand">Field Notes · Science</span>
+<span>Year 8</span>
+</div>
 
-    <h2>Ready when you are.</h2>
-    <p class="description">
-      Take a breath, focus up, and begin the test. You’ll be taken to the test form.
-    </p>
+<section class="hero" id="homePage">
+<span class="tag">
+<svg viewBox="0 0 24 24"><path d="M12 2L14.4 9.6H22L15.8 14.4L18.2 22L12 17.2L5.8 22L8.2 14.4L2 9.6H9.6L12 2Z"/></svg>
+Knowledge check
+</span>
+<h1>Rocks &amp; the<br>Rock Cycle</h1>
+<p class="intro">
+Test your knowledge of rock types and how rocks change. Complete the
+questions, do the drawing task on paper, then finish the test to see
+your feedback.
+</p>
+<button class="primary-button" id="startButton" type="button">
+Start Test
+<svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+</button>
+<div class="credit">MADE BY BEN GRAMBAUER · SCIENCE · YEAR 8</div>
+</section>
 
-    <a
-      class="start-button"
-      href="https://docs.google.com/forms/d/e/1FAIpQLScaHkQhpRDlGayMQ4ppnwUn2-1CMQee_4pWh6PfZG4z8lp8yQ/viewform?usp=publish-editor"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      START TEST <span class="arrow" aria-hidden="true">→</span>
-    </a>
+<section id="testPage">
+<header class="hero" style="margin-top:18px">
+<span class="tag">
+<svg viewBox="0 0 24 24"><path d="M12 2L14.4 9.6H22L15.8 14.4L18.2 22L12 17.2L5.8 22L8.2 14.4L2 9.6H9.6L12 2Z"/></svg>
+Science · Year 8
+</span>
+<h1>Let’s begin.</h1>
+<p class="intro">
+Answer each question, then press Finish Test to see your feedback.
+</p>
+</header>
 
-    <p class="note">OPENS THE TEST IN A NEW TAB</p>
-  </main>
+<div class="progress-wrap" aria-live="polite">
+<div class="progress-label">
+<span>Your progress</span>
+<span id="progressText">0 of 10 answered</span>
+</div>
+<div class="progress-track">
+<div class="progress-fill" id="progressFill"></div>
+</div>
+</div>
+
+<form id="quiz">
+<section class="question">
+<div class="question-head">
+<span class="number">01</span>
+<h2>Which rock forms directly from cooling molten magma or lava?</h2>
+</div>
+<div class="options">
+<label class="option"><input type="radio" name="q1" value="Marble"> Marble</label>
+<label class="option"><input type="radio" name="q1" value="Gneiss"> Gneiss</label>
+<label class="option"><input type="radio" name="q1" value="Sandstone"> Sandstone</label>
+<label class="option"><input type="radio" name="q1" value="Basalt"> Basalt</label>
+</div>
+<div class="feedback" id="fb1"></div>
+</section>
+
+<section class="question">
+<div class="question-head">
+<span class="number">02</span>
+<h2>Why is marble often used for sculptures and monuments instead of shale?</h2>
+</div>
+<p class="hint">Answer in your own words.</p>
+<textarea name="q2" placeholder="Type your answer here…" aria-label="Your answer about marble"></textarea>
+<div class="feedback" id="fb2"></div>
+</section>
+
+<section class="question">
+<div class="question-head">
+<span class="number">03</span>
+<h2>Show how a sedimentary rock can transform into a metamorphic rock.</h2>
+</div>
+<div class="paper-task">
+<strong>
+<svg viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+Do this question on paper
+</strong>
+<p>
+Draw and label sedimentary rock changing into metamorphic rock.
+Include heat and pressure, then tick the box when your drawing is done.
+</p>
+</div>
+<label class="option" style="margin-top:12px">
+<input type="checkbox" name="q3" value="done">
+I completed the diagram on paper
+</label>
+<div class="feedback" id="fb3"></div>
+</section>
+
+<section class="question">
+<div class="question-head">
+<span class="number">04</span>
+<h2>What is the difference between magma and lava?</h2>
+</div>
+<div class="options">
+<label class="option"><input type="radio" name="q4" value="Magma is underground, lava is on the surface"> Magma is underground, lava is on the surface</label>
+<label class="option"><input type="radio" name="q4" value="Magma is hot, lava is cold"> Magma is hot, lava is cold</label>
+<label class="option"><input type="radio" name="q4" value="They are the exact same thing"> They are the exact same thing</label>
+</div>
+<div class="feedback" id="fb4"></div>
+</section>
+
+<section class="question">
+<div class="question-head">
+<span class="number">05</span>
+<h2>How does heat and pressure change a rock into a metamorphic rock?</h2>
+</div>
+<div class="options" id="q5Options">
+<label class="option"><input type="radio" name="q5" value="It melts the rock completely"> It melts the rock completely into magma</label>
+<label class="option"><input type="radio" name="q5" value="It changes the rock without melting it"> It changes the minerals and structure without melting it</label>
+<label class="option"><input type="radio" name="q5" value="It crushes it into sand"> It crushes it into loose sand</label>
+</div>
+
+<button type="button" class="anim-btn" id="btnAnim1">
+<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+Lock Answer &amp; Show Diagram
+</button>
+
+<div class="anim-container" id="anim1">
+<h4>How Metamorphic Rocks Form</h4>
+<p>Intense heat and pressure deep underground squeeze the minerals into new layers without melting the rock.</p>
+<svg viewBox="0 0 200 100" width="100%" height="100%" style="max-width: 300px;">
+<rect x="20" y="20" width="160" height="15" fill="#a68b63" class="rock-layer" style="animation-delay: 0s;"/>
+<rect x="20" y="40" width="160" height="15" fill="#8c7150" class="rock-layer" style="animation-delay: 0.2s;"/>
+<rect x="20" y="60" width="160" height="15" fill="#d9c3a3" class="rock-layer" style="animation-delay: 0.4s;"/>
+<rect x="20" y="80" width="160" height="15" fill="#a68b63" class="rock-layer" style="animation-delay: 0.6s;"/>
+<path d="M 5 50 L 15 50 M 195 50 L 185 50" stroke="#d32f2f" stroke-width="3" marker-end="url(#arrow)"/>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M 0 0 L 10 5 L 0 10 z" fill="#d32f2f" />
+</marker>
+</defs>
+</svg>
+</div>
+<div class="feedback" id="fb5"></div>
+</section>
+
+<section class="question">
+<div class="question-head">
+<span class="number">06</span>
+<h2>What is the process called where loose sediment is squeezed and glued together to form sedimentary rock?</h2>
+</div>
+<div class="options" id="q6Options">
+<label class="option"><input type="radio" name="q6" value="Compaction and cementation"> Compaction and cementation</label>
+<label class="option"><input type="radio" name="q6" value="Melting and cooling"> Melting and cooling</label>
+<label class="option"><input type="radio" name="q6" value="Heat and pressure"> Heat and pressure</label>
+<label class="option"><input type="radio" name="q6" value="Weathering and erosion"> Weathering and erosion</label>
+</div>
+
+<button type="button" class="anim-btn" id="btnAnim2">
+<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+Lock Answer &amp; Show Diagram
+</button>
+
+<div class="anim-container" id="anim2">
+<h4>Compaction and Cementation</h4>
+<p>Layers of sediment build up, squeezing the bottom layers together (compaction), while minerals act like glue (cementation).</p>
+<svg viewBox="0 0 200 100" width="100%" height="100%" style="max-width: 300px;">
+<g class="sand-grain">
+<circle cx="40" cy="30" r="8" fill="#c2a67c" />
+<circle cx="80" cy="25" r="7" fill="#a68b63" />
+<circle cx="120" cy="35" r="9" fill="#d9c3a3" />
+<circle cx="160" cy="28" r="8" fill="#c2a67c" />
+</g>
+<g class="sand-grain" style="animation-delay: 0.2s;">
+<circle cx="50" cy="50" r="8" fill="#a68b63" />
+<circle cx="90" cy="55" r="7" fill="#c2a67c" />
+<circle cx="130" cy="45" r="9" fill="#d9c3a3" />
+<circle cx="170" cy="52" r="8" fill="#a68b63" />
+</g>
+<g class="sand-grain" style="animation-delay: 0.4s;">
+<circle cx="60" cy="70" r="8" fill="#d9c3a3" />
+<circle cx="100" cy="75" r="7" fill="#c2a67c" />
+<circle cx="140" cy="65" r="9" fill="#a68b63" />
+<circle cx="180" cy="72" r="8" fill="#d9c3a3" />
+</g>
+<rect x="20" y="40" width="160" height="10" fill="#8c7150" class="cement" opacity="0.6"/>
+<rect x="20" y="60" width="160" height="10" fill="#8c7150" class="cement" opacity="0.6" style="animation-delay: 0.5s;"/>
+</svg>
+</div>
+<div class="feedback" id="fb6"></div>
+</section>
+
+<section class="question">
+<div class="question-head">
+<span class="number">07</span>
+<h2>Analyze: A student says, "When a sedimentary rock melts completely into magma and then cools down, it becomes a metamorphic rock." Is the student correct?</h2>
+</div>
+<div class="options">
+<label class="option"><input type="radio" name="q7" value="Yes, that is how metamorphic rocks form"> Yes, that is how metamorphic rocks form</label>
+<label class="option"><input type="radio" name="q7" value="No, melting and cooling forms an igneous rock"> No, melting and cooling forms an igneous rock</label>
+<label class="option"><input type="radio" name="q7" value="No, it would form a sedimentary rock"> No, it would form a sedimentary rock</label>
+</div>
+<div class="feedback" id="fb7"></div>
+</section>
+
+<section class="question">
+<div class="question-head">
+<span class="number">08</span>
+<h2>How does sandstone transform into the metamorphic rock quartzite?</h2>
+</div>
+<p class="hint">Explain what causes the change and what happens to the rock.</p>
+<textarea name="q8" placeholder="Type your explanation here…" aria-label="Your explanation of quartzite formation"></textarea>
+<div class="feedback" id="fb8"></div>
+</section>
+
+<!-- Sandstone ID -->
+<section class="question">
+<div class="question-head">
+<span class="number">09</span>
+<h2>Identify this rock sample using the key below.</h2>
+</div>
+
+<div class="bedrock-card">
+<div>
+<h3>Rock sample A</h3>
+<p>
+Examine the physical properties of the rock to the right. Look closely at the texture.
+Does it have visible crystals that interlock, or is it made of compacted grains?
+Are there distinct bands or layers?
+</p>
+</div>
+
+<!-- Sandstone SVG -->
+<svg class="rock-image" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#e3dac9"/>
+<stop offset="100%" stop-color="#c4b8a3"/>
+</linearGradient>
+<filter id="noise">
+<feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/>
+<feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.15 0"/>
+</filter>
+<clipPath id="rockShape">
+<path d="M 60 140 Q 80 60 180 70 Q 280 60 340 110 Q 390 160 360 250 Q 320 340 200 350 Q 100 340 70 260 Q 40 200 60 140 Z"/>
+</clipPath>
+</defs>
+
+<rect width="400" height="400" fill="url(#bg)"/>
+<rect width="400" height="400" filter="url(#noise)" opacity="0.5"/>
+<path d="M 0 320 L 400 320 L 400 400 L 0 400 Z" fill="#8a7e6b" opacity="0.3"/>
+<ellipse cx="210" cy="340" rx="150" ry="30" fill="#000" opacity="0.25" filter="blur(8px)"/>
+
+<path d="M 60 140 Q 80 60 180 70 Q 280 60 340 110 Q 390 160 360 250 Q 320 340 200 350 Q 100 340 70 260 Q 40 200 60 140 Z" fill="#c2a67c"/>
+
+<g clip-path="url(#rockShape)">
+<path d="M 40 120 Q 150 140 200 110 T 380 130" fill="none" stroke="#a68b63" stroke-width="8" opacity="0.5"/>
+<path d="M 40 160 Q 150 180 200 150 T 380 170" fill="none" stroke="#d9c3a3" stroke-width="6" opacity="0.4"/>
+<path d="M 40 200 Q 150 230 200 190 T 380 210" fill="none" stroke="#a68b63" stroke-width="10" opacity="0.5"/>
+<path d="M 40 250 Q 150 270 200 240 T 380 260" fill="none" stroke="#d9c3a3" stroke-width="7" opacity="0.4"/>
+<path d="M 40 290 Q 150 310 200 280 T 380 300" fill="none" stroke="#a68b63" stroke-width="12" opacity="0.5"/>
+
+<rect width="400" height="400" fill="url(#noise)" opacity="0.8"/>
+
+<circle cx="120" cy="130" r="4" fill="#8c7150" opacity="0.6"/>
+<circle cx="250" cy="110" r="6" fill="#e6d3b6" opacity="0.7"/>
+<circle cx="300" cy="180" r="5" fill="#8c7150" opacity="0.5"/>
+<circle cx="150" cy="210" r="7" fill="#e6d3b6" opacity="0.6"/>
+<circle cx="80" cy="230" r="3" fill="#8c7150" opacity="0.6"/>
+<circle cx="280" cy="270" r="8" fill="#8c7150" opacity="0.5"/>
+<circle cx="180" cy="300" r="5" fill="#e6d3b6" opacity="0.6"/>
+<circle cx="340" cy="230" r="4" fill="#8c7150" opacity="0.5"/>
+</g>
+
+<path d="M 60 140 Q 80 60 180 70 Q 280 60 340 110" fill="none" stroke="#f2e6d5" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+</svg>
+</div>
+
+<div class="rock-key-card">
+<h4>Rock Identification Key</h4>
+<div class="rock-key-step"><strong>Step 1:</strong> Does it have distinct wavy bands or layers?</div>
+<div style="margin-left: 20px; margin-bottom: 10px;">Yes &rarr; Metamorphic Rock</div>
+<div class="rock-key-step"><strong>Step 2:</strong> If no bands, what is the texture?</div>
+<div style="margin-left: 20px; margin-bottom: 5px;">Made of compacted sand/pebbles &rarr; Sedimentary Rock</div>
+<div style="margin-left: 20px;">Made of visible, interlocking crystals &rarr; Igneous Rock</div>
+</div>
+
+<div class="custom-select-wrapper" id="rockDropdown1">
+<div class="custom-select-trigger" id="dropdownTrigger1">Select the rock type...</div>
+<div class="custom-options">
+<div class="custom-option" data-value="Sedimentary">Sedimentary rock</div>
+<div class="custom-option" data-value="Igneous">Igneous rock</div>
+<div class="custom-option" data-value="Metamorphic">Metamorphic rock</div>
+</div>
+<input type="hidden" name="q9" id="q9Value" value="" required>
+</div>
+
+<div class="feedback" id="fb9"></div>
+</section>
+
+<!-- Metamorphic ID (FIXED SVG) -->
+<section class="question">
+<div class="question-head">
+<span class="number">10</span>
+<h2>Identify this second rock sample using the key above.</h2>
+</div>
+
+<div class="bedrock-card">
+<div>
+<h3>Rock sample B</h3>
+<p>
+Examine the physical properties of this rock. Notice the texture.
+Does it have visible crystals that interlock, or is it made of compacted grains?
+Are there distinct wavy bands or layers?
+</p>
+</div>
+
+<!-- Metamorphic Gneiss SVG (Clean Edges, Zebra bands) -->
+<svg class="rock-image" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#d1d6d9"/>
+<stop offset="100%" stop-color="#a8b0b5"/>
+</linearGradient>
+<filter id="noise2">
+<feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" stitchTiles="stitch"/>
+<feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0.15 0"/>
+</filter>
+<clipPath id="rockShape2">
+<path d="M 60 140 Q 80 60 180 70 Q 280 60 340 110 Q 390 160 360 250 Q 320 340 200 350 Q 100 340 70 260 Q 40 200 60 140 Z"/>
+</clipPath>
+</defs>
+
+<rect width="400" height="400" fill="url(#bg2)"/>
+<rect width="400" height="400" filter="url(#noise2)" opacity="0.5"/>
+<path d="M 0 320 L 400 320 L 400 400 L 0 400 Z" fill="#6b7268" opacity="0.3"/>
+<ellipse cx="210" cy="340" rx="150" ry="30" fill="#000" opacity="0.25" filter="blur(8px)"/>
+
+<path d="M 60 140 Q 80 60 180 70 Q 280 60 340 110 Q 390 160 360 250 Q 320 340 200 350 Q 100 340 70 260 Q 40 200 60 140 Z" fill="#8b9399"/>
+
+<g clip-path="url(#rockShape2)">
+<path d="M 20 80 Q 150 140 200 90 T 380 100" fill="none" stroke="#2c3034" stroke-width="24" opacity="0.85"/>
+<path d="M 20 180 Q 150 230 200 180 T 380 190" fill="none" stroke="#2c3034" stroke-width="28" opacity="0.85"/>
+<path d="M 20 280 Q 150 330 200 280 T 380 290" fill="none" stroke="#2c3034" stroke-width="20" opacity="0.85"/>
+
+<path d="M 20 130 Q 150 180 200 130 T 380 140" fill="none" stroke="#e8ebed" stroke-width="18" opacity="0.9"/>
+<path d="M 20 230 Q 150 280 200 230 T 380 240" fill="none" stroke="#e8ebed" stroke-width="22" opacity="0.9"/>
+<path d="M 20 330 Q 150 380 200 330 T 380 340" fill="none" stroke="#e8ebed" stroke-width="16" opacity="0.9"/>
+
+<!-- Crystals -->
+<g fill="#fff" opacity="0.8">
+<circle cx="90" cy="100" r="3" />
+<circle cx="180" cy="115" r="4" />
+<circle cx="260" cy="85" r="2.5" />
+<circle cx="330" cy="135" r="3" />
+<circle cx="70" cy="200" r="4" />
+<circle cx="150" cy="195" r="2" />
+<circle cx="240" cy="215" r="3" />
+<circle cx="310" cy="175" r="4" />
+<circle cx="110" cy="300" r="2.5" />
+<circle cx="190" cy="280" r="4" />
+<circle cx="280" cy="315" r="3" />
+</g>
+<g fill="#111" opacity="0.9">
+<circle cx="120" cy="70" r="3" />
+<circle cx="210" cy="105" r="4" />
+<circle cx="290" cy="150" r="2.5" />
+<circle cx="100" cy="160" r="3" />
+<circle cx="180" cy="235" r="2" />
+<circle cx="340" cy="205" r="3" />
+<circle cx="140" cy="265" r="2.5" />
+<circle cx="220" cy="300" r="3" />
+</g>
+
+<!-- Rock grain texture -->
+<rect width="400" height="400" filter="url(#noise2)" opacity="0.6"/>
+
+<!-- Subtle fracture lines for realism -->
+<path d="M 120 80 L 140 120 L 110 160" fill="none" stroke="#1a1c1e" stroke-width="2" opacity="0.3"/>
+<path d="M 280 200 L 310 230 L 290 280" fill="none" stroke="#1a1c1e" stroke-width="2" opacity="0.3"/>
+</g>
+
+<!-- Clean 3D Highlight Edge -->
+<path d="M 60 140 Q 80 60 180 70 Q 280 60 340 110" fill="none" stroke="#f2f6f8" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+<path d="M 60 140 Q 80 60 180 70 Q 280 60 340 110 Q 390 160 360 250 Q 320 340 200 350 Q 100 340 70 260 Q 40 200 60 140 Z" fill="none" stroke="#3a4045" stroke-width="2" opacity="0.5"/>
+</svg>
+</div>
+
+<div class="custom-select-wrapper" id="rockDropdown2">
+<div class="custom-select-trigger" id="dropdownTrigger2">Select the rock type...</div>
+<div class="custom-options">
+<div class="custom-option" data-value="Sedimentary">Sedimentary rock</div>
+<div class="custom-option" data-value="Igneous">Igneous rock</div>
+<div class="custom-option" data-value="Metamorphic">Metamorphic rock</div>
+</div>
+<input type="hidden" name="q10" id="q10Value" value="" required>
+</div>
+
+<div class="feedback" id="fb10"></div>
+</section>
+
+<div class="actions" id="testActions">
+<button class="finish-button" type="submit">
+Finish Test
+<svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+</button>
+</div>
+</form>
+
+<section class="results" id="results" aria-live="polite">
+<h2>
+<svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+Test complete
+</h2>
+<p class="result-score" id="score"></p>
+<p id="summary"></p>
+<div style="margin-top: 20px;">
+<button class="primary-button" id="returnHomeBtn" type="button">Return to Homepage</button>
+</div>
+</section>
+
+<div class="credit-line">Made by Ben Grambauer · Science · Year 8</div>
+</section>
+</main>
+
+<script>
+const cursor = document.getElementById("cursor");
+const warningPopup = document.getElementById("warningPopup");
+let warningTimeout;
+
+document.addEventListener("mousemove", event => {
+cursor.style.left = event.clientX + "px";
+cursor.style.top = event.clientY + "px";
+});
+
+document.addEventListener("mouseover", event => {
+if (event.target.closest("button, label, input, textarea, .custom-select-trigger, .custom-option")) {
+document.body.classList.add("cursor-hover");
+}
+});
+document.addEventListener("mouseout", event => {
+if (event.target.closest("button, label, input, textarea, .custom-select-trigger, .custom-option")) {
+document.body.classList.remove("cursor-hover");
+}
+});
+
+/* Anti-Cheese Animation Logic */
+function setupAntiCheese(qName, btnId, animId, optionsContainerId) {
+const btn = document.getElementById(btnId);
+const anim = document.getElementById(animId);
+const container = document.getElementById(optionsContainerId);
+
+btn.addEventListener('click', () => {
+const selectedOption = document.querySelector(`input[name="${qName}"]:checked`);
+
+if (!selectedOption) {
+warningPopup.classList.add("show");
+clearTimeout(warningTimeout);
+warningTimeout = setTimeout(() => {
+warningPopup.classList.remove("show");
+}, 2500);
+return;
+}
+
+anim.classList.add('show');
+
+const radios = container.querySelectorAll('input[type="radio"]');
+radios.forEach(radio => {
+radio.disabled = true;
+radio.parentElement.classList.add('locked');
+});
+
+btn.disabled = true;
+btn.innerHTML = `
+<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+Answer Locked
+`;
+btn.style.background = "#dfe6dc";
+btn.style.color = "#68736d";
+btn.style.borderColor = "#ccc";
+});
+}
+
+setupAntiCheese('q5', 'btnAnim1', 'anim1', 'q5Options');
+setupAntiCheese('q6', 'btnAnim2', 'anim2', 'q6Options');
+
+/* Custom Dropdown Logic */
+function setupDropdown(wrapperId, triggerId, inputId) {
+const wrapper = document.getElementById(wrapperId);
+const trigger = document.getElementById(triggerId);
+const hiddenInput = document.getElementById(inputId);
+const options = wrapper.querySelectorAll('.custom-option');
+
+trigger.addEventListener('click', (e) => {
+e.stopPropagation();
+wrapper.classList.toggle('open');
+});
+
+options.forEach(opt => {
+opt.addEventListener('click', (e) => {
+e.stopPropagation();
+const val = opt.getAttribute('data-value');
+const text = opt.textContent;
+
+trigger.textContent = text;
+hiddenInput.value = val;
+
+options.forEach(o => o.classList.remove('selected'));
+opt.classList.add('selected');
+
+wrapper.classList.remove('open');
+
+hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+});
+});
+}
+
+setupDropdown('rockDropdown1', 'dropdownTrigger1', 'q9Value');
+setupDropdown('rockDropdown2', 'dropdownTrigger2', 'q10Value');
+
+document.addEventListener('click', () => {
+document.querySelectorAll('.custom-select-wrapper').forEach(w => w.classList.remove('open'));
+});
+
+document.getElementById("startButton").addEventListener("click", () => {
+document.getElementById("homePage").style.display = "none";
+document.getElementById("testPage").style.display = "block";
+window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+document.getElementById("returnHomeBtn").addEventListener("click", () => {
+document.getElementById("quiz").reset();
+document.getElementById("quiz").style.pointerEvents = "auto";
+document.getElementById("quiz").style.opacity = "1";
+document.getElementById("testActions").style.display = "flex";
+
+document.getElementById("dropdownTrigger1").textContent = "Select the rock type...";
+document.getElementById("q9Value").value = "";
+document.querySelectorAll("#rockDropdown1 .custom-option").forEach(o => o.classList.remove('selected'));
+
+document.getElementById("dropdownTrigger2").textContent = "Select the rock type...";
+document.getElementById("q10Value").value = "";
+document.querySelectorAll("#rockDropdown2 .custom-option").forEach(o => o.classList.remove('selected'));
+
+document.querySelectorAll(".feedback").forEach(el => el.classList.remove("show"));
+
+document.getElementById("anim1").classList.remove("show");
+document.getElementById("anim2").classList.remove("show");
+
+const radios = document.querySelectorAll("#q5Options input, #q6Options input");
+radios.forEach(radio => {
+radio.disabled = false;
+radio.parentElement.classList.remove('locked');
+});
+
+const b1 = document.getElementById("btnAnim1");
+b1.disabled = false;
+b1.innerHTML = `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Lock Answer & Show Diagram`;
+b1.style = "";
+
+const b2 = document.getElementById("btnAnim2");
+b2.disabled = false;
+b2.innerHTML = `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Lock Answer & Show Diagram`;
+b2.style = "";
+
+document.getElementById("results").classList.remove("show");
+document.getElementById("testPage").style.display = "none";
+document.getElementById("homePage").style.display = "block";
+
+updateProgress();
+window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+const form = document.getElementById("quiz");
+
+function isAnswered(name) {
+if (name === "q2" || name === "q8") {
+return form.elements[name].value.trim().length > 0;
+}
+if (name === "q9" || name === "q10") {
+return document.getElementById(name + "Value").value !== "";
+}
+return form.querySelector(`[name="${name}"]:checked`) !== null;
+}
+
+function updateProgress() {
+const questions = ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10"];
+const count = questions.filter(isAnswered).length;
+
+document.getElementById("progressText").textContent =
+`${count} of 10 answered`;
+
+document.getElementById("progressFill").style.width =
+`${(count / 10) * 100}%`;
+}
+
+form.addEventListener("input", updateProgress);
+form.addEventListener("change", updateProgress);
+
+function selected(name) {
+const input = form.querySelector(`[name="${name}"]:checked`);
+return input ? input.value : (form.elements[name] ? form.elements[name].value : "");
+}
+
+function showFeedback(id, correct, message) {
+const box = document.getElementById(id);
+box.className = `feedback show ${correct ? "good" : "neutral"}`;
+box.textContent = message;
+}
+
+form.addEventListener("submit", event => {
+event.preventDefault();
+
+form.style.pointerEvents = "none";
+form.style.opacity = "0.7";
+document.getElementById("testActions").style.display = "none";
+
+let score = 0;
+
+const q1Correct = selected("q1") === "Basalt";
+if (q1Correct) score++;
+showFeedback("fb1", q1Correct, q1Correct ? "Correct!" : "Incorrect. The answer is Basalt.");
+
+const fb2 = document.getElementById("fb2");
+fb2.className = "feedback show neutral";
+fb2.innerHTML = "<strong>Sample answer:</strong> Marble is durable and can be carved and polished. Shale is made of thin layers and tends to split.";
+
+const q3Correct = selected("q3") === "done";
+if (q3Correct) score++;
+showFeedback("fb3", q3Correct, q3Correct ? "Marked as complete." : "Remember to do the diagram.");
+
+const q4Correct = selected("q4") === "Magma is underground, lava is on the surface";
+if (q4Correct) score++;
+showFeedback("fb4", q4Correct, q4Correct ? "Correct!" : "Incorrect. Magma is underground, lava is above ground.");
+
+const q5Correct = selected("q5") === "It changes the rock without melting it";
+if (q5Correct) score++;
+showFeedback("fb5", q5Correct, q5Correct ? "Correct! Heat and pressure change the minerals without melting the rock." : "Incorrect. Metamorphic rocks form from heat and pressure WITHOUT melting.");
+
+const q6Correct = selected("q6") === "Compaction and cementation";
+if (q6Correct) score++;
+showFeedback("fb6", q6Correct, q6Correct ? "Correct!" : "Incorrect. The process is compaction and cementation.");
+
+const q7Correct = selected("q7") === "No, melting and cooling forms an igneous rock";
+if (q7Correct) score++;
+showFeedback("fb7", q7Correct, q7Correct ? "Correct! Melting and cooling forms an igneous rock." : "Incorrect. Melting and cooling forms an igneous rock.");
+
+const fb8 = document.getElementById("fb8");
+fb8.className = "feedback show neutral";
+fb8.innerHTML = "<strong>Key idea:</strong> Heat and pressure cause the quartz grains in sandstone to recrystallize and lock together.";
+
+const q9Correct = selected("q9") === "Sedimentary";
+if (q9Correct) score++;
+showFeedback("fb9", q9Correct, q9Correct ? "Correct! The compacted sand layers identify this as a sedimentary rock." : "Incorrect. The rock is made of compacted sand, so it is Sedimentary.");
+
+const q10Correct = selected("q10") === "Metamorphic";
+if (q10Correct) score++;
+showFeedback("fb10", q10Correct, q10Correct ? "Correct! The wavy bands identify this as a metamorphic rock." : "Incorrect. The distinct wavy bands mean it is Metamorphic.");
+
+document.getElementById("score").textContent = `${score} of 10 scored checks correct`;
+document.getElementById("summary").textContent = "Written answers are not automatically marked; compare them with the sample answers above.";
+
+const results = document.getElementById("results");
+results.classList.add("show");
+results.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+updateProgress();
+</script>
 </body>
 </html>
