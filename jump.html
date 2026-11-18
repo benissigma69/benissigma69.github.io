@@ -83,7 +83,7 @@
       <div class="spinner" aria-hidden="true"></div> 
       <div class="progress" aria-label="Update progress"><div class="bar" id="bar"></div></div> 
       <div class="small" id="percent">0%</div> 
-      <button class="secondary" id="stopButton" type="button">Abort</button> 
+      <button class="secondary" id="stopButton" type="button">Stop Updating</button> 
     </section> 
   </main> 
 
@@ -151,7 +151,7 @@
       $("percent").textContent = "0%"; 
       $("updateTitle").textContent = "Updating Google Chrome…"; 
       $("updateText").textContent = "Status: Downloading and applying components. Please keep your window open."; 
-      $("stopButton").textContent = "Abort"; 
+      $("stopButton").textContent = "Stop Updating"; 
       showScreen("settings"); 
     }); 
   </script> 
