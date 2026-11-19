@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#030408">
-<!-- 1 & 2: Clean Tab Title and Gradient Favicon -->
 <title>Celestial x SWIRL</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%2335e5f3'/><stop offset='100%' stop-color='%23a47aff'/></linearGradient></defs><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' stroke='url(%23g)'/></svg>">
 <style>
@@ -36,14 +35,11 @@ cursor: none !important;
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-
-/* 5: Custom Scrollbar */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: rgba(53, 229, 243, 0.3); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
 
-/* --- PREMIUM CUSTOM CURSOR --- */
 #cursor {
 position: fixed; top: 0; left: 0; width: 6px; height: 6px;
 background: var(--text); border-radius: 50%;
@@ -65,7 +61,6 @@ box-shadow: 0 0 15px var(--pink);
 }
 a, button, input, .card, .tool-btn { cursor: none !important; }
 
-/* --- IMMERSIVE LANDING SCREEN --- */
 #landing {
 position: fixed; inset: 0; z-index: 1000; background: #020306;
 display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -73,11 +68,8 @@ transition: opacity 1.2s var(--ease), visibility 1.2s;
 overflow: hidden;
 }
 #landing.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
 #landing-canvas { position: absolute; inset: 0; z-index: 1; }
-
 .landing-content { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
-
 .landing-logo {
 display: flex; align-items: center; gap: 20px; margin-bottom: 30px;
 animation: float 6s ease-in-out infinite;
@@ -99,7 +91,6 @@ box-shadow: 0 0 60px rgba(53, 229, 243, 0.2);
 }
 @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 
-/* --- MAIN LAYOUT --- */
 .app {
 position: relative; z-index: 10;
 max-width: 1150px; margin: 0 auto; padding: 40px 24px 100px;
@@ -107,11 +98,8 @@ opacity: 0; transform: translateY(30px);
 transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
 }
 .app.visible { opacity: 1; transform: translateY(0); }
-
-/* --- MAIN BACKGROUND CANVAS (METEORITES) --- */
 #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.9; }
 
-/* --- NAVBAR --- */
 nav {
 display: flex; justify-content: space-between; align-items: center;
 padding-bottom: 24px; margin-bottom: 80px; border-bottom: 1px solid var(--line);
@@ -128,7 +116,6 @@ transition: all 0.3s; display: flex; align-items: center; gap: 8px;
 .nav-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
 .nav-btn:hover { color: var(--text); border-color: var(--line-hover); background: rgba(255,255,255,0.05); }
 
-/* --- HERO --- */
 .hero { text-align: center; margin-bottom: 90px; }
 .hero h1 { font-size: clamp(38px, 7vw, 68px); font-weight: 900; letter-spacing: -3px; line-height: 1.05; margin-bottom: 24px; }
 .hero h1 span {
@@ -139,7 +126,6 @@ filter: drop-shadow(0 0 30px rgba(53, 229, 243, 0.25));
 .hero p { color: var(--muted); font-size: 16px; max-width: 600px; margin: 0 auto; line-height: 1.7; }
 .hero p b { color: var(--text); font-weight: 700; }
 
-/* --- GRID SYSTEM --- */
 .section-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; }
 .section-title { font-size: 13px; font-weight: 900; letter-spacing: 5px; color: var(--muted); text-transform: uppercase; }
 .section-title span { color: var(--text); }
@@ -149,7 +135,6 @@ border-radius: 20px; font-size: 9px; font-weight: 800; color: var(--muted); lett
 }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 90px; perspective: 1500px; }
 
-/* 7 & 8: Glassmorphism Cards with 3D Tilt */
 .card {
 background: var(--panel); border: 1px solid var(--line); border-radius: 20px;
 padding: 32px; display: flex; flex-direction: column; position: relative; overflow: hidden;
@@ -168,10 +153,8 @@ box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 40px rgba(255,255,255,0.03);
 background: rgba(16, 20, 32, 0.8);
 }
 .card:hover::before { opacity: 1; }
-
 .card[data-type="game"]:hover { border-color: rgba(53, 229, 243, 0.4); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 50px rgba(53, 229, 243, 0.12); }
 .card[data-type="proxy"]:hover { border-color: rgba(112, 239, 180, 0.4); box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 50px rgba(112, 239, 180, 0.12); }
-
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; transform: translateZ(25px); }
 .card-icon {
 width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
@@ -181,20 +164,15 @@ background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); tr
 .card-icon svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .card[data-type="game"] .card-icon { color: var(--cyan); text-shadow: 0 0 20px var(--cyan); }
 .card[data-type="proxy"] .card-icon { color: var(--green); text-shadow: 0 0 20px var(--green); }
-
 .card-status { font-size: 9px; font-weight: 900; letter-spacing: 2px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); }
 .card-status.live { color: var(--green); border-color: rgba(112,239,180,0.3); background: rgba(112,239,180,0.05); box-shadow: 0 0 15px rgba(112,239,180,0.1); }
 .card-status.new { color: var(--gold); border-color: rgba(255,209,108,0.3); background: rgba(255,209,108,0.05); box-shadow: 0 0 15px rgba(255,209,108,0.1); }
-
 .card h3 { font-size: 22px; font-weight: 800; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; transform: translateZ(20px); letter-spacing: -0.5px; }
 .card p { color: var(--muted); font-size: 13.5px; line-height: 1.65; margin-bottom: 32px; flex-grow: 1; transform: translateZ(15px); }
 .card p b { color: var(--text); font-weight: 600; }
-
 .card-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: auto; transform: translateZ(25px); }
 .card-tags { display: flex; gap: 8px; }
 .tag { font-size: 9px; font-weight: 800; letter-spacing: 1px; color: var(--muted); background: rgba(255,255,255,0.04); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); }
-
-/* 4: Magnetic Hover Green PLAY Button */
 .card-action {
 font-size: 11px; font-weight: 900; letter-spacing: 2.5px;
 color: var(--bg); background: var(--green); padding: 10px 24px; border-radius: 8px;
@@ -207,7 +185,6 @@ background: #ffffff; box-shadow: 0 0 25px rgba(112, 239, 180, 0.4); transform: t
 .card-action svg { width: 14px; height: 14px; fill: none; stroke: var(--bg); stroke-width: 2.5; transition: transform 0.3s var(--ease); }
 .card:hover .card-action svg { transform: translateX(3px); }
 
-/* --- PROXY FEATURE HIGHLIGHT --- */
 .proxy-feature {
 grid-column: 1 / -1;
 background: linear-gradient(135deg, rgba(112, 239, 180, 0.06), rgba(53, 229, 243, 0.02));
@@ -224,11 +201,8 @@ box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 60px rgba(112, 239, 180, 0.15);
 .proxy-feature .card-icon svg { width: 34px; height: 34px; }
 .proxy-feature h3 { font-size: 28px; margin-bottom: 14px; }
 .proxy-feature p { margin-bottom: 0; max-width: 600px; font-size: 15px; }
-.proxy-feature .card-action {
-padding: 16px 36px; font-size: 13px;
-}
+.proxy-feature .card-action { padding: 16px 36px; font-size: 13px; }
 
-/* --- FOOTER --- */
 footer {
 margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--line);
 display: flex; justify-content: space-between; align-items: center;
@@ -239,7 +213,6 @@ color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 2px;
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
 .clock { font-variant-numeric: tabular-nums; }
 
-/* --- DIALOG --- */
 dialog {
 margin: auto; border: 1px solid rgba(255,255,255,0.1); background: var(--panel-solid); color: var(--text);
 padding: 0; border-radius: 24px; width: min(500px, calc(100% - 32px));
@@ -271,7 +244,6 @@ nav { flex-direction: column; gap: 24px; align-items: flex-start; }
 <div id="cursor"></div>
 <canvas id="bg-canvas"></canvas>
 
-<!-- IMMERSIVE LANDING SCREEN -->
 <div id="landing">
 <canvas id="landing-canvas"></canvas>
 <div class="landing-content">
@@ -286,9 +258,7 @@ nav { flex-direction: column; gap: 24px; align-items: flex-start; }
 </div>
 </div>
 
-<!-- MAIN APP -->
 <main class="app" id="app">
-
 <nav>
 <div class="nav-brand">
 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -311,14 +281,12 @@ CELESTIAL <span>x</span> SWIRL
 <p>A joint project between <b>Celestial</b> and <b>SWIRL</b>. Play our games, bypass filters with our cloud browser, and explore the tools we've built for school and beyond.</p>
 </header>
 
-<!-- SWIRL GAMES -->
 <div class="section-header">
 <div class="section-title">SWIRL <span>GAMES</span></div>
-<div class="badge">3 LIVE</div>
+<div class="badge">6 GAMES</div>
 </div>
 
 <div class="grid">
-<!-- Human Tester -->
 <a href="https://benissigma69.github.io/benchy.html" target="_blank" rel="noopener" class="card" data-type="game">
 <div class="card-top">
 <div class="card-icon">
@@ -329,16 +297,11 @@ CELESTIAL <span>x</span> SWIRL
 <h3>Human Tester</h3>
 <p>Five quick challenges that test your <b>reaction time</b>, <b>click speed</b>, <b>memory</b> and <b>typing</b>. Earn ranks, unlock achievements, and beat your high scores.</p>
 <div class="card-bottom">
-<div class="card-tags">
-<span class="tag">REFLEX</span>
-<span class="tag">CPS</span>
-<span class="tag">MEMORY</span>
-</div>
+<div class="card-tags"><span class="tag">REFLEX</span><span class="tag">CPS</span><span class="tag">MEMORY</span></div>
 <div class="card-action">PLAY <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
 </div>
 </a>
 
-<!-- Idle Lab -->
 <a href="https://benissigma69.github.io/idlenew.html" target="_blank" rel="noopener" class="card" data-type="game">
 <div class="card-top">
 <div class="card-icon">
@@ -349,15 +312,11 @@ CELESTIAL <span>x</span> SWIRL
 <h3>Idle Lab</h3>
 <p>Build a flux empire from a single tap. Over <b>55 upgrades</b>, <b>400 achievements</b>, golden orbs, and a deep prestige system with a Reality Engine endgame.</p>
 <div class="card-bottom">
-<div class="card-tags">
-<span class="tag">IDLE</span>
-<span class="tag">PRESTIGE</span>
-</div>
+<div class="card-tags"><span class="tag">IDLE</span><span class="tag">PRESTIGE</span></div>
 <div class="card-action">PLAY <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
 </div>
 </a>
 
-<!-- Daily Rolls Game -->
 <a href="https://swirl-q9f4zx7-games.netlify.app" target="_blank" rel="noopener" class="card" data-type="game">
 <div class="card-top">
 <div class="card-icon" style="color: var(--pink); text-shadow: 0 0 20px var(--pink);">
@@ -368,38 +327,59 @@ CELESTIAL <span>x</span> SWIRL
 <h3>Daily Rolls</h3>
 <p>Test your luck with the daily rolling system. You get <b>10 rolls per day</b>, and the entire game resets every <b>10 days</b>. Highly addictive, fast-paced spinning action.</p>
 <div class="card-bottom">
-<div class="card-tags">
-<span class="tag">DAILY ROLLS</span>
-<span class="tag">SPINS</span>
-</div>
+<div class="card-tags"><span class="tag">DAILY ROLLS</span><span class="tag">SPINS</span></div>
 <div class="card-action">PLAY <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
 </div>
 </a>
 
-<!-- Jump -->
 <a href="https://benissigma69.github.io/jump.html" target="_blank" rel="noopener" class="card" data-type="game">
 <div class="card-top">
 <div class="card-icon">
-<svg viewBox="0 0 24 24">
-<path d="M5 18h14M7 14l4-4 3 3 5-6"/>
-<path d="M15 7h4v4"/>
-</svg>
+<svg viewBox="0 0 24 24"><path d="M5 18h14M7 14l4-4 3 3 5-6"/><path d="M15 7h4v4"/></svg>
 </div>
 <div class="card-status new">NEW</div>
 </div>
 <h3>Fake Update Screen</h3>
 <p>Simulate a convincing system update screen with a progress bar and status messages. A harmless prank experience—no actual updates are installed.</p>
 <div class="card-bottom">
-<div class="card-tags">
-<span class="tag">SIMULATOR</span>
-<span class="tag">PRANK</span>
+<div class="card-tags"><span class="tag">SIMULATOR</span><span class="tag">PRANK</span></div>
+<div class="card-action">PLAY <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
 </div>
+</a>
+
+<!-- Driving -->
+<a href="https://benissigma69.github.io/driving.html" target="_blank" rel="noopener" class="card" data-type="game">
+<div class="card-top">
+<div class="card-icon">
+<svg viewBox="0 0 24 24"><path d="M5 17h14l-1.5-7h-11L5 17z"/><path d="M7 10l1.5-4h7L17 10M7 17v2m10-2v2M7 14h.01M17 14h.01"/></svg>
+</div>
+<div class="card-status new">NEW</div>
+</div>
+<h3>Reckless Driving</h3>
+<p>Take the wheel in a fast-paced driving game. Steer your car, avoid obstacles, and see how far you can go.</p>
+<div class="card-bottom">
+<div class="card-tags"><span class="tag">DRIVING</span><span class="tag">ARCADE</span></div>
+<div class="card-action">PLAY <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+</div>
+</a>
+
+<!-- Flappy -->
+<a href="https://benissigma69.github.io/flappy.html" target="_blank" rel="noopener" class="card" data-type="game">
+<div class="card-top">
+<div class="card-icon">
+<svg viewBox="0 0 24 24"><path d="M3 13c4-5 8-5 12-1l6 1-6 2c-4 4-8 4-12-2z"/><path d="M10 11l2-4 2 5"/></svg>
+</div>
+<div class="card-status new">NEW</div>
+</div>
+<h3>Flappy Bird</h3>
+<p>Tap to flap your way through the gaps, avoid the obstacles, and try to beat your high score.</p>
+<div class="card-bottom">
+<div class="card-tags"><span class="tag">ARCADE</span><span class="tag">HIGH SCORE</span></div>
 <div class="card-action">PLAY <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
 </div>
 </a>
 </div>
 
-<!-- CELESTIAL PROXY DOCK -->
 <div class="section-header">
 <div class="section-title">CELESTIAL <span>PROXY DOCK</span></div>
 <div class="badge" style="color:var(--green); border-color:rgba(112,239,180,0.3)">SECURE</div>
@@ -421,16 +401,13 @@ CELESTIAL <span>x</span> SWIRL
 </a>
 </div>
 
-<!-- 9: Typewriter Status Ticker -->
 <footer>
 <div>CELESTIAL x SWIRL © 2026</div>
 <div class="footer-status"><span class="dot"></span> <span id="status-text">ALL SYSTEMS ONLINE</span></div>
 <div class="clock" id="clock">00:00:00</div>
 </footer>
-
 </main>
 
-<!-- ABOUT DIALOG -->
 <dialog id="about-dialog">
 <div class="dialog-inner">
 <div class="dialog-title">THE COLLAB</div>
@@ -445,7 +422,6 @@ Built by a small group of friends from school. We make things we find fun and us
 <script>
 "use strict";
 
-// --- HIGH-QUALITY CURSOR ---
 const cursor = document.getElementById('cursor');
 let mouseX = 0, mouseY = 0;
 
@@ -461,24 +437,20 @@ el.addEventListener('mouseenter', () => document.body.classList.add('hovering'))
 el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
 });
 
-// --- LANDING SEQUENCE ---
 document.getElementById('enter-btn').addEventListener('click', () => {
 document.getElementById('landing').classList.add('hidden');
 const app = document.getElementById('app');
-setTimeout(() => {
-app.classList.add('visible');
-}, 100);
+setTimeout(() => app.classList.add('visible'), 100);
 });
 
-// --- CLOCK ---
 function updateClock() {
 const d = new Date();
 const str = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 document.getElementById('clock').textContent = str;
 }
-setInterval(updateClock, 1000); updateClock();
+setInterval(updateClock, 1000);
+updateClock();
 
-// --- 9: TYPEWRITER EFFECT ---
 const statusText = document.getElementById('status-text');
 const originalText = statusText.textContent;
 statusText.textContent = '';
@@ -492,7 +464,6 @@ setTimeout(typeWriter, 80);
 }
 setTimeout(typeWriter, 1500);
 
-// --- AUDIO SYSTEM (Click only) ---
 let audioCtx = null;
 let soundEnabled = true;
 const soundBtn = document.getElementById('sound-btn');
@@ -544,7 +515,6 @@ soundIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="m23 9-6 6M17 9
 }
 });
 
-// --- LANDING CANVAS (METEORITES) ---
 const lCanvas = document.getElementById('landing-canvas');
 const lCtx = lCanvas.getContext('2d');
 let lWidth, lHeight;
@@ -577,16 +547,13 @@ lCtx.fill();
 }
 
 class Meteor {
-constructor() {
-this.reset();
-}
+constructor() { this.reset(); }
 reset() {
-// Start top right, move down to bottom left/right
 this.x = lWidth + Math.random() * 200;
 this.y = -100 - Math.random() * 200;
 this.len = Math.random() * 120 + 80;
 this.speed = Math.random() * 12 + 6;
-this.angle = Math.PI * 0.75 + (Math.random() * 0.2 - 0.1); // Diagonal down-left
+this.angle = Math.PI * 0.75 + (Math.random() * 0.2 - 0.1);
 this.vx = Math.cos(this.angle) * this.speed;
 this.vy = Math.sin(this.angle) * this.speed;
 this.alpha = 0.8;
@@ -594,15 +561,12 @@ this.alpha = 0.8;
 update() {
 this.x += this.vx;
 this.y += this.vy;
-if (this.y > lHeight + 200 || this.x < -200) {
-this.reset();
-}
+if (this.y > lHeight + 200 || this.x < -200) this.reset();
 }
 draw() {
 lCtx.beginPath();
 lCtx.moveTo(this.x, this.y);
 lCtx.lineTo(this.x - this.vx * 4, this.y - this.vy * 4);
-// 10: Smooth Gradient Meteor Trails
 let grad = lCtx.createLinearGradient(this.x, this.y, this.x - this.vx * 4, this.y - this.vy * 4);
 grad.addColorStop(0, `rgba(255, 255, 255, ${this.alpha})`);
 grad.addColorStop(0.2, `rgba(53, 229, 243, ${this.alpha * 0.5})`);
@@ -620,15 +584,10 @@ function animateLanding(time) {
 lCtx.clearRect(0, 0, lWidth, lHeight);
 lStars.forEach(s => s.draw(time));
 meteors.forEach(m => { m.update(); m.draw(); });
-
-if (!document.getElementById('landing').classList.contains('hidden')) {
-requestAnimationFrame(animateLanding);
-}
+if (!document.getElementById('landing').classList.contains('hidden')) requestAnimationFrame(animateLanding);
 }
 requestAnimationFrame(animateLanding);
 
-
-// --- MAIN BACKGROUND CANVAS (METEORITES) ---
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 let width, height;
@@ -661,9 +620,7 @@ ctx.fill();
 }
 
 class MeteorMain {
-constructor() {
-this.reset();
-}
+constructor() { this.reset(); }
 reset() {
 this.x = width + Math.random() * 200;
 this.y = -100 - Math.random() * 200;
@@ -677,9 +634,7 @@ this.alpha = 0.6;
 update() {
 this.x += this.vx;
 this.y += this.vy;
-if (this.y > height + 200 || this.x < -200) {
-this.reset();
-}
+if (this.y > height + 200 || this.x < -200) this.reset();
 }
 draw() {
 ctx.beginPath();
@@ -706,7 +661,6 @@ requestAnimationFrame(animateMain);
 }
 requestAnimationFrame(animateMain);
 
-// --- 8: 3D TILT EFFECT FOR CARDS ---
 document.querySelectorAll('.card').forEach(card => {
 card.addEventListener('mousemove', e => {
 const rect = card.getBoundingClientRect();
@@ -726,9 +680,7 @@ card.style.transition = 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-co
 });
 });
 
-// Play enter sound
 document.getElementById('enter-btn').addEventListener('click', () => playSound('enter'));
-
 </script>
 </body>
-</html>
+</html>DRIVING
